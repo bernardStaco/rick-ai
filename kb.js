@@ -473,8 +473,15 @@ const KB = {
 
   // ─── LYRICS TAGS ─────────────────────────────────────────────
   lyricsTags: {
-    structural: ["[Intro]","[Verse 1]","[Verse 2]","[Verse 3]","[Pre-Chorus]","[Chorus]","[Post-Chorus]","[Bridge]","[Outro]","[Hook]","[Rap Verse]","[Spoken Word]","[Interlude]","[Break]","[Drop]","[Build]","[Instrumental Break]","[Solo]"],
-    delivery:   ["[Powerful]","[Whispered]","[Falsetto]","[Raspy]","[Smooth]","[Spoken]","[Melodic]","[Aggressive]","[Tender]","[Breathy]","[Operatic]","[Growling]"]
+    structural: ["[Intro]","[Verse 1]","[Verse 2]","[Verse 3]","[Pre-Chorus]","[Chorus]","[Post-Chorus]","[Bridge]","[Outro]","[Hook]","[Rap Verse]","[Spoken Word]","[Interlude]","[Break]","[Drop]","[Build]","[Breakdown]","[Refrain]","[Swell]","[Fade Out]","[Instrumental Break]","[Solo]","[Guitar Solo]"],
+    deliveryGroups: {
+      "Intensity":  ["[Whispered]","[Soft]","[Gentle]","[Powerful]","[Belted]","[Shouted]","[Screamed]","[Intense]"],
+      "Style":      ["[Smooth]","[Raspy]","[Breathy]","[Airy]","[Nasal]","[Soulful]","[Operatic]","[Falsetto]","[Head Voice]","[Chest Voice]","[Melodic]","[Tender]","[Aggressive]"],
+      "Technique":  ["[Harmonies]","[Ad-libs]","[Vocal Run]","[Melisma]","[Vibrato]","[Staccato]","[Legato]","[Choir]","[Chant]","[Growling]"],
+      "Rap / Flow": ["[Rapped]","[Fast Rap]","[Slow Flow]","[Melodic Rap]","[Trap Flow]","[Double Time]","[Spoken]"],
+      "Persona":    ["[female lead]","[male lead]","[female narrator]","[male narrator]","[rap verse]","[gospel choir]","[diva solo]","[primal scream]","[intimate MC]"]
+    },
+    delivery: ["[Whispered]","[Soft]","[Gentle]","[Powerful]","[Belted]","[Shouted]","[Screamed]","[Intense]","[Smooth]","[Raspy]","[Breathy]","[Airy]","[Nasal]","[Soulful]","[Operatic]","[Falsetto]","[Head Voice]","[Chest Voice]","[Melodic]","[Tender]","[Aggressive]","[Harmonies]","[Ad-libs]","[Vocal Run]","[Melisma]","[Vibrato]","[Staccato]","[Legato]","[Choir]","[Chant]","[Growling]","[Rapped]","[Fast Rap]","[Slow Flow]","[Melodic Rap]","[Trap Flow]","[Double Time]","[Spoken]","[female lead]","[male lead]","[female narrator]","[male narrator]","[rap verse]","[gospel choir]","[diva solo]","[primal scream]","[intimate MC]"]
   },
 
   commonExcludes:["vocals","drums","piano","guitar","bass","strings","brass","hi-hat","reverb","distortion","synth"]

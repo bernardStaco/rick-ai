@@ -105,9 +105,8 @@ function assemble() {
   if (prod.length) parts.push(prod.join(", "));
   if (S.artistRef.trim()) parts.push(S.artistRef.trim());
   if (S.vocalistProfile) {
-    const vp = S.vocalistProfile;
-    const vparts = [vp.type, ...vp.qualities, vp.register, ...vp.delivery].filter(Boolean);
-    if (vparts.length) parts.push("vocalist: " + vparts.join(", "));
+    const vs = assembleVocalistStr(S.vocalistProfile);
+    if (vs) parts.push(vs);
   }
   const exl = [...S.excludes, ...S.customExcludes.filter(Boolean)];
   if (exl.length) parts.push(exl.map(e => `no: ${e}`).join(", "));
@@ -118,10 +117,16 @@ function assemble() {
 }
 
 function assembleLyrics() {
-  if (!S.useGuidedLyrics) return S.freeLyrics;
-  return S.lyricsSections.map(sec => {
+  const cmdBlock = S.vocalistProfile ? buildVocalistCmdBlock(S.vocalistProfile) : "";
+  if (!S.useGuidedLyrics) {
+    return cmdBlock ? cmdBlock + "\n\n" + S.freeLyrics : S.freeLyrics;
+  }
+  const secs = S.lyricsSections;
+  if (!secs.length) return "";
+  return secs.map((sec, i) => {
     const tags = sec.deliveryTags.join("");
-    return `${sec.structTag}${tags}\n${sec.text}`;
+    const cmdLine = (i === 0 && cmdBlock) ? cmdBlock + "\n" : "";
+    return `${sec.structTag}${tags}\n${cmdLine}${sec.text}`;
   }).join("\n\n");
 }
 
@@ -204,7 +209,6 @@ function builderHTML() {
     ${S.genre ? metaProductionHTML() : ""}
     ${S.genre ? metaMoodHTML() : ""}
     ${S.genre ? artistRefHTML() : ""}
-    ${S.genre ? vocalistBuilderHTML() : ""}
     ${S.genre ? excludesHTML() : ""}
     ${S.genre ? moreOptsHTML() : ""}
     ${S.genre ? customStyleHTML() : ""}
@@ -665,17 +669,21 @@ function stylePreviewHTML() {
 
 // ── LYRICS BUILDER ────────────────────────────────────────────
 function lyricsBuilderHTML() {
+  const noVocal = allTags().some(t => t === "[No Vocals]" || t === "[Instrumental]");
+  const showVocalist = !noVocal && S.lyricsSections.length > 0;
+  const sm = smLyrics() || (S.vocalistProfile && showVocalist ? (S.vocalistProfile.name || "vocalist active") : null);
   const body = `
+    ${showVocalist ? `<div class="lyr-vocalist-wrap">${vocalistBuilderHTML()}</div>` : ""}
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0;flex-wrap:wrap;gap:8px">
       <div class="tab-row">
         <button class="btn-tab${S.useGuidedLyrics?" active":""}" onclick="S.useGuidedLyrics=true;render()">Guided</button>
         <button class="btn-tab${!S.useGuidedLyrics?" active":""}" onclick="S.useGuidedLyrics=false;render()">Free Form</button>
       </div>
-      <div style="font-size:10px;color:var(--warn)">⚠️ Lyrics box: lyrics + structural tags ONLY</div>
+      <div style="font-size:10px;color:var(--warn)">&#x26A0;&#xFE0F; Lyrics box: lyrics + structural tags ONLY</div>
     </div>
     ${S.useGuidedLyrics ? `${songStructureMapHTML()}${guidedLyricsHTML()}` : freeformLyricsHTML()}
   `;
-  return sectionCard("lyrics","🎵","background:var(--l2)","Lyric Structure","Guided song structure with sections and delivery tags","var(--l2)",smLyrics(),body);
+  return sectionCard("lyrics","♪","background:var(--l2)","Lyric Structure","Vocalist + guided song structure with delivery tags","var(--l2)",sm,body);
 }
 
 function songStructureMapHTML() {
@@ -713,29 +721,48 @@ function guidedLyricsHTML() {
 }
 
 function lyricsSectionHTML(sec, i) {
+  const open = sec.open !== false;
+  const selBadges = sec.deliveryTags.length
+    ? sec.deliveryTags.map(d => `<span class="delivery-badge">${esc(d.replace(/[\[\]]/g,""))}</span>`).join("")
+    : "";
+  const preview = !open && sec.text
+    ? `<span class="lsec-preview">${esc(sec.text.split("\n")[0].slice(0,50))}</span>`
+    : "";
   return `
-    <div class="lyrics-sec" id="lsec-${sec.id}" draggable="true"
+    <div class="lyrics-sec${open?"":" lsec-collapsed"}" id="lsec-${sec.id}" draggable="true"
          ondragstart="onDragStart(event,${i})" ondragover="onDragOver(event,${i})" ondrop="onDrop(event,${i})" ondragleave="onDragLeave(event)">
-      <div class="lyrics-sec-hdr">
-        <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <div class="lyrics-sec-hdr" onclick="toggleLyricsSection(${i})" style="cursor:pointer">
+        <span class="drag-handle" title="Drag to reorder" onclick="event.stopPropagation()">⠿</span>
         <span class="struct-badge">${esc(sec.structTag)}</span>
-        <div class="delivery-chips">
-          ${KB.lyricsTags.delivery.map(dt => `
-            <button class="chip chip-xs chip-delivery${sec.deliveryTags.includes(dt)?" active":""}"
-                    onclick="toggleDelivery(${i},'${esc(dt)}')">${esc(dt)}</button>
-          `).join("")}
-        </div>
-        <div class="lyrics-sec-controls">
+        ${selBadges ? `<div class="delivery-selected">${selBadges}</div>` : ""}
+        ${preview}
+        <div class="lyrics-sec-controls" onclick="event.stopPropagation()">
           ${i>0?`<button class="btn-icon" onclick="moveSection(${i},-1)" title="Move up">↑</button>`:""}
           ${i<S.lyricsSections.length-1?`<button class="btn-icon" onclick="moveSection(${i},1)" title="Move down">↓</button>`:""}
+          <span class="lsec-chevron${open?" open":""}">▾</span>
           <button class="btn-icon del" onclick="removeSection(${i})" title="Remove">✕</button>
         </div>
       </div>
-      <textarea class="lyrics-textarea" rows="4"
-                placeholder="Type lyrics for ${esc(sec.structTag)}…"
-                oninput="S.lyricsSections[${i}].text=this.value;patchPreviews()">${esc(sec.text)}</textarea>
+      <div class="lsec-body" style="${open?"":"display:none"}">
+        <div class="delivery-groups">
+          ${Object.entries(KB.lyricsTags.deliveryGroups).map(([grp, tags]) => `
+            <div class="delivery-group">
+              <span class="delivery-group-label">${grp}</span>
+              ${tags.map(dt => `<button class="chip chip-xs chip-delivery${sec.deliveryTags.includes(dt)?" active":""}"
+                  onclick="toggleDelivery(${i},'${esc(dt)}')">${esc(dt.replace(/[\[\]]/g,""))}</button>`).join("")}
+            </div>
+          `).join("")}
+        </div>
+        <textarea class="lyrics-textarea" rows="4"
+                  placeholder="Type lyrics for ${esc(sec.structTag)}…"
+                  oninput="S.lyricsSections[${i}].text=this.value;patchPreviews()">${esc(sec.text)}</textarea>
+      </div>
     </div>
   `;
+}
+function toggleLyricsSection(i) {
+  S.lyricsSections[i].open = !(S.lyricsSections[i].open !== false);
+  render();
 }
 
 function freeformLyricsHTML() {
@@ -754,8 +781,9 @@ function lyricsPreviewHTML() {
   if (!lyr.trim()) return "";
   // Syntax-highlight structural and delivery tags
   const highlighted = esc(lyr)
-    .replace(/(\[(?:Verse \d|Chorus|Pre-Chorus|Post-Chorus|Bridge|Intro|Outro|Hook|Rap Verse|Spoken Word|Interlude|Break|Drop|Build)\])/g, '<span class="stag">$1</span>')
-    .replace(/(\[(?:Powerful|Whispered|Falsetto|Raspy|Smooth|Spoken|Melodic|Aggressive|Tender|Breathy|Operatic|Growling)\])/g, '<span class="dtag">$1</span>');
+    .replace(/(\[(?:Verse \d+|Chorus|Pre-Chorus|Post-Chorus|Bridge|Intro|Outro|Hook|Rap Verse|Spoken Word|Interlude|Break|Drop|Build|Breakdown|Refrain|Swell|Fade Out|Instrumental Break|Solo|Guitar Solo)\])/g, '<span class="stag">$1</span>')
+    .replace(/(\[(?:Whispered|Soft|Gentle|Powerful|Belted|Shouted|Screamed|Intense|Smooth|Raspy|Breathy|Airy|Nasal|Soulful|Operatic|Falsetto|Head Voice|Chest Voice|Melodic|Tender|Aggressive|Harmonies|Ad-libs|Vocal Run|Melisma|Vibrato|Staccato|Legato|Choir|Chant|Growling|Rapped|Fast Rap|Slow Flow|Melodic Rap|Trap Flow|Double Time|Spoken)\])/g, '<span class="dtag">$1</span>')
+    .replace(/(\[(?:female lead|male lead|female narrator|male narrator|rap verse|gospel choir|diva solo|primal scream|intimate MC|spoken word|Female Vocal|Male Vocal)\])/gi, '<span class="stag" style="color:var(--pink)">$1</span>');
   return `
     <div class="card">
       <div class="preview-hdr">
@@ -1041,7 +1069,7 @@ function deletePreset(idx) {
 
 // ── LYRICS SECTION ACTIONS ────────────────────────────────────
 function addSection(tag) {
-  S.lyricsSections.push({ id: uid(), structTag: tag, deliveryTags: [], text: "" });
+  S.lyricsSections.push({ id: uid(), structTag: tag, deliveryTags: [], text: "", open: true });
   render();
 }
 function removeSection(i) { S.lyricsSections.splice(i, 1); render(); }
@@ -1265,6 +1293,13 @@ const VOICE_TYPES = ["Soprano","Mezzo-Soprano","Alto","Tenor","Baritone","Bass",
 const VOICE_QUALITIES = ["raspy","breathy","smooth","silky","warm","bright","dark","nasal","velvety","powerful","delicate","rich","gritty","airy","husky","piercing","sultry","mellow"];
 const VOICE_REGISTERS = ["chest voice","mixed voice","head voice","falsetto","full range"];
 const VOICE_DELIVERY = ["straight-tone","vibrato","belting","crooning","melisma","runs & riffs","whisper","yodel","soulful runs","ad-libs","falsetto breaks","vocal fry"];
+const VOICE_TIMBRE = ["smoky rasp","vocal fry","close mic","warm storytelling","confident delivery","ethereal","resonant","weathered","intimate","restrained"];
+const VOICE_PITCH_PRESETS = [
+  { label:"D2-D4  Deep Bass",   val:"D2 to D4",   hint:"Massive resonant bass — anchors to chest voice, prevents falsetto breakouts" },
+  { label:"F2-F4  Gritty Bari", val:"F2 to F4",   hint:"Gritty baritone — stack with smoky rasp or vocal fry" },
+  { label:"B1-B3  Proximity",   val:"B1 to B3",   hint:"Intimate whisper register — combine with close mic + kill the reverb" },
+  { label:"D2  Mechanical",     val:"stay on D2", hint:"Single-note drone — removes melody, forces robotic/deadpan character" },
+];
 
 const VP_KEY = "sunoVocalists";
 
@@ -1278,7 +1313,7 @@ function saveVocalistLibrary(arr) { localStorage.setItem(VP_KEY, JSON.stringify(
 // S.vocalistProfile = active loaded profile (inserted into assemble)
 
 function vocalistBuilderHTML() {
-  if (!S.vocalistDraft) S.vocalistDraft = { name:"", type:"Unspecified", qualities:[], register:"", delivery:[] };
+  if (!S.vocalistDraft) S.vocalistDraft = { name:"", type:"Unspecified", qualities:[], register:"", delivery:[], pitchRange:"", timbre:[] };
   const d = S.vocalistDraft;
   const lib = getVocalistLibrary();
 
@@ -1298,7 +1333,16 @@ function vocalistBuilderHTML() {
     `<button class="chip${d.delivery.includes(v)?" active":""}" onclick="toggleVocalDraftArr('delivery','${v}')">${v}</button>`
   ).join("");
 
+  const timbreRow = VOICE_TIMBRE.map(t =>
+    `<button class="chip${d.timbre && d.timbre.includes(t)?" active":""}" onclick="toggleVocalDraftArr('timbre','${t}')">${t}</button>`
+  ).join("");
+
+  const pitchRow = VOICE_PITCH_PRESETS.map(p =>
+    `<button class="chip${d.pitchRange===p.val?" active":""}" onclick="setVocalDraft('pitchRange','${p.val}')" title="${p.hint}">${p.label}</button>`
+  ).join("");
+
   const preview = assembleVocalistStr(d);
+  const cmdBlock = buildVocalistCmdBlock(d);
   const hasProfile = !!S.vocalistProfile;
 
   const libSection = lib.length ? `
@@ -1311,7 +1355,7 @@ function vocalistBuilderHTML() {
           <div class="vo-lib-actions">
             <button class="btn btn-xs" onclick="loadVocalistProfile(${i})">Use</button>
             <button class="btn btn-xs" onclick="editVocalistProfile(${i})">Edit</button>
-            <button class="btn btn-xs btn-danger-ghost" onclick="deleteVocalistProfile(${i})">✕</button>
+            <button class="btn btn-xs btn-danger-ghost" onclick="deleteVocalistProfile(${i})">&#x2715;</button>
           </div>
         </div>`).join("")}
     </div>` : `<div class="fav-empty" style="padding:8px 0">No saved vocalists yet</div>`;
@@ -1319,7 +1363,7 @@ function vocalistBuilderHTML() {
   const body = `
     <div class="card-inner" style="padding-bottom:4px">
       ${hasProfile ? `<div class="vo-active-banner">
-        <span>Active: <strong>${esc(S.vocalistProfile.name || "Custom")}</strong> — ${esc(assembleVocalistStr(S.vocalistProfile))}</span>
+        <span>Active: <strong>${esc(S.vocalistProfile.name || "Custom")}</strong> &mdash; ${esc(assembleVocalistStr(S.vocalistProfile))}</span>
         <button class="btn btn-xs btn-danger-ghost" onclick="S.vocalistProfile=null;patchPreviews()">Remove</button>
       </div>` : ""}
       <div class="vo-section-label">Voice Type</div>
@@ -1330,9 +1374,23 @@ function vocalistBuilderHTML() {
       <div class="chip-group">${regRow}</div>
       <div class="vo-section-label">Delivery <span class="vo-hint">pick any</span></div>
       <div class="chip-group">${delRow}</div>
-      ${preview ? `<div class="vo-preview">→ <code>${esc(preview)}</code></div>` : ""}
+      <div class="vo-section-label">Timbre Keywords <span class="vo-hint">texture descriptors &mdash; added to style prompt</span></div>
+      <div class="chip-group">${timbreRow}</div>
+      <div class="vo-section-label">Pitch Register <span class="vo-hint">mathematical range constraint &mdash; hover each for detail</span></div>
+      <div class="chip-group">${pitchRow}</div>
+      <input class="text-input" style="margin-top:5px;font-size:12px;width:100%" placeholder="Custom range e.g. C2 to E4 or stay on D2..."
+        value="${esc(d.pitchRange||'')}" oninput="S.vocalistDraft.pitchRange=this.value;render()">
+      ${preview ? `<div class="vo-preview">&#x2192; <code>${esc(preview)}</code></div>` : ""}
+      ${cmdBlock ? `<div class="vo-preview" style="margin-top:4px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span>&#x1F4CB; Lyrics command block:</span>
+          <code>${esc(cmdBlock)}</code>
+          <button class="btn btn-xs" onclick="copyVocalistCmdBlock()">Copy</button>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Paste at the very top of your lyrics, before [Verse 1]</div>
+      </div>` : ""}
       <div class="vo-actions">
-        <input class="text-input" style="flex:1;font-size:13px" placeholder="Vocalist name (optional)…"
+        <input class="text-input" style="flex:1;font-size:13px" placeholder="Vocalist name (optional)..."
           value="${esc(d.name)}" oninput="S.vocalistDraft.name=this.value">
         <button class="btn" onclick="applyVocalistDraft()" ${preview?"":"disabled"}>Use</button>
         <button class="btn" onclick="saveVocalistDraft()" ${preview?"":"disabled"}>Save</button>
@@ -1356,7 +1414,9 @@ function assembleVocalistStr(vp) {
   const parts = [];
   if (vp.type && vp.type !== "Unspecified") parts.push(vp.type);
   if (vp.qualities && vp.qualities.length) parts.push(...vp.qualities);
+  if (vp.timbre && vp.timbre.length) parts.push(...vp.timbre);
   if (vp.register) parts.push(vp.register);
+  if (vp.pitchRange) parts.push(vp.pitchRange);
   if (vp.delivery && vp.delivery.length) parts.push(...vp.delivery);
   return parts.length ? "vocalist: " + parts.join(", ") : "";
 }
@@ -1369,8 +1429,9 @@ function setVocalDraft(key, val) {
 }
 
 function toggleVocalDraftArr(key, val) {
-  if (!S.vocalistDraft) S.vocalistDraft = { name:"", type:"Unspecified", qualities:[], register:"", delivery:[] };
+  if (!S.vocalistDraft) S.vocalistDraft = { name:"", type:"Unspecified", qualities:[], register:"", delivery:[], pitchRange:"", timbre:[] };
   const arr = S.vocalistDraft[key];
+  if (!Array.isArray(arr)) return;
   const idx = arr.indexOf(val);
   if (idx === -1) arr.push(val); else arr.splice(idx, 1);
   render();
@@ -1405,12 +1466,12 @@ function loadVocalistProfile(i) {
 function editVocalistProfile(i) {
   const lib = getVocalistLibrary();
   if (!lib[i]) return;
-  S.vocalistDraft = { ...lib[i] };
-  S.open["vocbuild"] = true;
+  S.vocalistDraft = { ...lib[i], _idx: i };
   render();
 }
 
 function deleteVocalistProfile(i) {
+  if (!confirm("Delete this vocalist profile?")) return;
   const lib = getVocalistLibrary();
   lib.splice(i, 1);
   saveVocalistLibrary(lib);
@@ -1419,10 +1480,31 @@ function deleteVocalistProfile(i) {
 }
 
 function clearVocalistDraft() {
-  S.vocalistDraft = { name:"", type:"Unspecified", qualities:[], register:"", delivery:[] };
+  S.vocalistDraft = { name: "", type: "Unspecified", qualities: [], register: "", delivery: [], pitchRange: "", timbre: [] };
   render();
 }
 
+function buildVocalistCmdBlock(vp) {
+  if (!vp) return "";
+  const parts = [];
+  if (vp.timbre && vp.timbre.length) vp.timbre.forEach(t => parts.push("[" + t + "]"));
+  if (vp.pitchRange) parts.push("[" + vp.pitchRange + "]");
+  const blMap = {
+    "Bass":          ["no falsetto","no tenor","no soprano"],
+    "Baritone":      ["no falsetto","no soprano"],
+    "Tenor":         ["no bass","no baritone","no soprano"],
+    "Alto":          ["no soprano","no falsetto"],
+    "Mezzo-Soprano": ["no bass","no baritone"],
+    "Soprano":       ["no bass","no baritone","no tenor"],
+  };
+  if (vp.type && blMap[vp.type]) blMap[vp.type].forEach(b => parts.push("[" + b + "]"));
+  return parts.join("");
+}
+
+function copyVocalistCmdBlock() {
+  const block = buildVocalistCmdBlock(S.vocalistDraft || S.vocalistProfile);
+  if (block) navigator.clipboard.writeText(block).catch(() => {});
+}
 
 // INIT
 // =============================================================
