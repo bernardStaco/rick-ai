@@ -18,8 +18,7 @@ const KB = {
       tempoRange:[130,150], defaultBPM:140,
       instruments:["plucked synth lead","deep sub bass","wobble bass","glitchy percussion","atmospheric supersaws","melodic piano","string pads","reverbed guitar","arpeggiator synth"],
       production:["stadium reverb","heavy sidechain compression","lush reverb tail","mid-side processing","heavy limiting","glitchy build-ups","epic drops","white noise sweeps"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]",
-      desc:"Emotional electronic with melodic elements and heavy dubstep drops"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]"
     },
     {
       id:"future-bass", name:"Future Bass", icon:"🌈", group:"Electronic",
@@ -33,8 +32,7 @@ const KB = {
       tempoRange:[140,160], defaultBPM:150,
       instruments:["supersaws","pitched vocal chops","808 bass","bright lead synth","pluck synth","trap hi-hats","atmospheric pads","bell tones"],
       production:["massive reverb","sidechain pumping","layered pads","vocal chop glitch","bright EQ","punchy drops","shimmery highs"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null,
-      desc:"Colorful high-energy electronic with pitched vocals and heavy drops"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
     },
     {
       id:"house", name:"House", icon:"🏠", group:"Electronic",
@@ -48,8 +46,7 @@ const KB = {
       tempoRange:[120,132], defaultBPM:124,
       instruments:["four-on-the-floor kick","hi-hat groove","bass synth","organ chords","piano riff","filtered strings","clap","sub bass"],
       production:["warm reverb","analog warmth","punchy compression","rolling bassline","sidechain pumping","filtered breakdown","warm low-end"],
-      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null,
-      desc:"Four-on-the-floor groove-driven electronic dance music"
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null
     },
     {
       id:"lofi", name:"Lo-Fi Hip Hop", icon:"☕", group:"Electronic",
@@ -63,8 +60,7 @@ const KB = {
       tempoRange:[70,90], defaultBPM:80,
       instruments:["dusty sample chops","vinyl crackle","jazzy piano","soft boom bap drums","upright bass","muted guitar","ambient texture","rain ambience"],
       production:["tape saturation","vinyl noise","gentle compression","warm low-pass filter","soft reverb","analog warmth","dusty mix"],
-      qualityDefault:["[Studio Quality]"], vocalDefault:"[No Vocals]",
-      desc:"Relaxed hazy hip hop with vintage sampling aesthetics"
+      qualityDefault:["[Studio Quality]"], vocalDefault:"[No Vocals]"
     },
     {
       id:"dnb", name:"Drum & Bass", icon:"🥁", group:"Electronic",
@@ -78,8 +74,7 @@ const KB = {
       tempoRange:[170,180], defaultBPM:174,
       instruments:["amen break","reese bass","atmospheric pads","rolling bassline","sampled horns","snare roll","sub bass","chopped breakbeat"],
       production:["heavy compression","sidechain pumping","wide stereo field","glitchy effects","sub-heavy mix","neuro distortion","rolling groove"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]",
-      desc:"High-speed breakbeat electronic with deep rolling basslines"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]"
     },
     {
       id:"techno", name:"Techno", icon:"⚙️", group:"Electronic",
@@ -93,8 +88,7 @@ const KB = {
       tempoRange:[130,145], defaultBPM:138,
       instruments:["four-on-the-floor kick","modular synths","acid bass","hi-hat pattern","industrial noise","textural pads","percussive clicks","vocal stabs"],
       production:["heavy compression","dry mix","room reverb","industrial fx","acid 303 filter","minimal arrangement","hypnotic groove"],
-      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[No Vocals]",
-      desc:"Machine-driven hypnotic electronic with industrial aesthetics"
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[No Vocals]"
     },
     {
       id:"ambient", name:"Ambient", icon:"🌌", group:"Electronic",
@@ -108,8 +102,7 @@ const KB = {
       tempoRange:[60,80], defaultBPM:70,
       instruments:["synthesizer pads","field recordings","drone bass","reverbed guitar","bell tones","choir vocals","sparse piano","nature sounds"],
       production:["massive reverb","long decay","gentle fade","granular processing","slow attack","wide stereo field","ethereal textures"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]",
-      desc:"Atmospheric textural soundscapes without traditional song structure"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]"
     },
     {
       id:"hip-hop", name:"Hip Hop", icon:"🎤", group:"Hip Hop",
@@ -123,8 +116,7 @@ const KB = {
       tempoRange:[80,105], defaultBPM:93,
       instruments:["punchy kick","crispy snare","sampled brass","808 bass","vintage piano","hi-hat pattern","orchestral strings","vocal samples"],
       production:["punchy compression","vinyl warmth","wide stereo","boom bap drums","soulful samples","heavy 808","crisp high-end"],
-      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]",
-      desc:"Rhythmic vocal-driven music with boom bap or modern production"
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
     },
     {
       id:"trap", name:"Trap", icon:"🔊", group:"Hip Hop",
@@ -138,8 +130,7 @@ const KB = {
       tempoRange:[130,145], defaultBPM:140,
       instruments:["Roland 808","trap hi-hat rolls","trap snare","atmospheric pads","piano melody","orchestral strings","dark synths","ad-lib vocals"],
       production:["heavy 808 compression","spatial reverb","hard limiting","hi-hat swing","trap triplets","dark atmospheric mix","punchy low end"],
-      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null,
-      desc:"Modern hip hop with heavy 808s, hi-hat rolls and atmospheric production"
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null
     },
     {
       id:"boom-bap", name:"Boom Bap", icon:"🎵", group:"Hip Hop",
@@ -153,8 +144,7 @@ const KB = {
       tempoRange:[85,100], defaultBPM:92,
       instruments:["sampled jazz breaks","chunky kick","snappy snare","sampled horns","bass guitar","vinyl scratches","jazzy piano","soul vocal samples"],
       production:["vinyl warmth","punchy compression","subtle reverb","sample chops","natural drum sound","warm low-end","classic mixdown"],
-      qualityDefault:["[Studio Quality]"], vocalDefault:"[Male Vocal]",
-      desc:"Classic hip hop with jazz-inflected samples and hard-hitting drums"
+      qualityDefault:["[Studio Quality]"], vocalDefault:"[Male Vocal]"
     },
     {
       id:"rnb", name:"R&B", icon:"🎶", group:"R&B / Soul",
@@ -168,8 +158,7 @@ const KB = {
       tempoRange:[75,95], defaultBPM:85,
       instruments:["electric guitar","bass guitar","Rhodes piano","soft drums","strings","brass section","synth pads","finger snaps"],
       production:["warm reverb","smooth compression","lush mixing","analog warmth","layered harmonies","intimate acoustics","silky high-end"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[Female Vocal]",
-      desc:"Soul-influenced pop with smooth production and emotional vocals"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[Female Vocal]"
     },
     {
       id:"neo-soul", name:"Neo-Soul", icon:"🎷", group:"R&B / Soul",
@@ -183,8 +172,7 @@ const KB = {
       tempoRange:[70,90], defaultBPM:80,
       instruments:["Rhodes piano","Wurlitzer","slap bass","live drums with brushes","brass horns","strings","acoustic guitar","B3 organ"],
       production:["analog warmth","room reverb","subtle compression","vinyl character","live band feel","organic textures","warm low-end"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[Female Vocal]",
-      desc:"Modern soul with jazz influences and organic live instrumentation"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[Female Vocal]"
     },
     {
       id:"pop", name:"Pop", icon:"⭐", group:"Pop",
@@ -198,8 +186,7 @@ const KB = {
       tempoRange:[100,130], defaultBPM:116,
       instruments:["synthesizer","electric bass","drum machine","electric guitar","piano","layered harmonies","synth arpeggios","clap track"],
       production:["polished mixing","bright EQ","punchy compression","wide stereo","radio-ready master","layered production","catchy hooks"],
-      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null,
-      desc:"Mainstream accessible music with catchy melodies and polished production"
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null
     },
     {
       id:"indie-rock", name:"Indie Rock", icon:"🎸", group:"Rock",
@@ -213,8 +200,7 @@ const KB = {
       tempoRange:[100,145], defaultBPM:120,
       instruments:["jangly electric guitar","bass guitar","live drums","rhythm guitar","piano","organ","vocal harmonies","shimmering guitar leads"],
       production:["room reverb","analog saturation","natural compression","live recording feel","guitar layers","punchy drums","warm mix"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null,
-      desc:"Guitar-driven rock with artistic independence and emotional depth"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
     },
     {
       id:"metal", name:"Metal", icon:"🤘", group:"Rock",
@@ -228,8 +214,7 @@ const KB = {
       tempoRange:[120,200], defaultBPM:160,
       instruments:["distorted guitar","bass guitar","double kick drums","palm-muted riffs","lead guitar","rhythm guitar wall","blast beats","clean guitar (sparse)"],
       production:["heavy compression","tight low-end","wide guitar mix","powerful drums","heavy saturation","precise mix","guitar doubling"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null,
-      desc:"Heavy aggressive guitar-driven music with complex arrangements"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
     },
     {
       id:"jazz", name:"Jazz", icon:"🎺", group:"Jazz",
@@ -243,8 +228,7 @@ const KB = {
       tempoRange:[80,160], defaultBPM:120,
       instruments:["upright bass","saxophone","piano","brushed drums","trumpet","jazz guitar","vibraphone","trombone"],
       production:["room reverb","warm compression","natural acoustics","spatial mixing","live feel","analog warmth","balanced mix"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null,
-      desc:"Improvisational music with sophisticated harmony and swing feel"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
     },
     {
       id:"orchestral", name:"Orchestral", icon:"🎻", group:"Cinematic",
@@ -258,8 +242,7 @@ const KB = {
       tempoRange:[60,120], defaultBPM:84,
       instruments:["strings ensemble","brass section","woodwinds","choir","timpani","piano","French horns","harp"],
       production:["concert hall reverb","dynamic range","spatial orchestration","natural acoustics","wide stereo imaging","section layering"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]",
-      desc:"Full orchestra arrangements with classical or modern cinematic style"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]"
     },
     {
       id:"cinematic", name:"Cinematic", icon:"🎬", group:"Cinematic",
@@ -273,8 +256,7 @@ const KB = {
       tempoRange:[60,140], defaultBPM:90,
       instruments:["strings","brass","epic percussion","piano","synthesizer","choir","low brass","solo violin"],
       production:["large hall reverb","dynamic contrast","layered textures","massive low end","epic builds","trailer-style percussion","wide mix"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]",
-      desc:"Film score-inspired music designed for emotional storytelling"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[No Vocals]"
     },
     {
       id:"country", name:"Country", icon:"🤠", group:"Country / Folk",
@@ -288,8 +270,7 @@ const KB = {
       tempoRange:[90,130], defaultBPM:108,
       instruments:["acoustic guitar","pedal steel guitar","fiddle","banjo","bass guitar","drums","dobro","mandolin"],
       production:["warm reverb","natural acoustics","live feel","authentic mix","twang character","Nashville sound","organic production"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null,
-      desc:"American roots music with storytelling lyrics and country instrumentation"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
     },
     {
       id:"reggaeton", name:"Reggaeton", icon:"🌴", group:"Latin / World",
@@ -303,8 +284,7 @@ const KB = {
       tempoRange:[90,100], defaultBPM:95,
       instruments:["dembow beat","808 bass","piano","brass samples","synthesizer","trap hi-hats","synth pads","percussion"],
       production:["punchy compression","bright EQ","danceable mix","urban sound","heavy low-end","tight groove","club-ready master"],
-      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null,
-      desc:"Latin urban music with dembow rhythm and dancehall influences"
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null
     },
     {
       id:"afrobeats", name:"Afrobeats", icon:"🌍", group:"Latin / World",
@@ -318,8 +298,7 @@ const KB = {
       tempoRange:[90,115], defaultBPM:100,
       instruments:["talking drum","bass guitar","electric guitar","shaker","brass section","synthesizer","log drum","kora (sparse)"],
       production:["warm mix","live percussion feel","rhythmic energy","layered percussion","bright EQ","organic warmth","afro groove"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null,
-      desc:"West African-influenced pop with polyrhythmic percussion and infectious grooves"
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
     },
     {
       id:"kompa", name:"Kompa", icon:"🎷", group:"Caribbean",
@@ -331,10 +310,9 @@ const KB = {
         { primary:"Smooth",    mods:["Groovy","Elegant","Laid-Back","Silky"] }
       ],
       tempoRange:[100,120], defaultBPM:110,
-      instruments:["electric guitar lead","bass guitar","trumpet","trombone","saxophone","congas","güira","tambourine","organ","synthesizer pads","drum kit","rhythm guitar"],
+      instruments:["electric guitar lead","bass guitar","trumpet","trombone","saxophone","congas","cowbell","güira","tambourine","organ","synthesizer pads","drum kit","rhythm guitar"],
       production:["warm analog mix","danceable groove","rich brass arrangement","smooth vocal layering","Caribbean warmth","deep bass line","live band feel","lush horn section"],
-      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]",
-      desc:"Haitian dance music created in 1955 — infectious meringue-based rhythm, lush brass, and smooth electric guitar"
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
     },
     {
       id:"raboday", name:"Raboday", icon:"🔥", group:"Caribbean",
@@ -348,8 +326,7 @@ const KB = {
       tempoRange:[135,160], defaultBPM:145,
       instruments:["808 bass","trap drum kit","distorted synthesizer","sampled brass loop","rapid hi-hat rolls","sub bass","tambourine","güira","digital percussion","synth stab"],
       production:["heavy 808 compression","trap production","bass saturation","raw high-energy mix","punchy kick","distorted low-end","aggressive limiting","swing hi-hat pattern"],
-      qualityDefault:["[Studio Quality]"], vocalDefault:"[Male Vocal]",
-      desc:"Modern Haitian urban genre — Kompa rhythms fused with trap, 808s, and raw street energy"
+      qualityDefault:["[Studio Quality]"], vocalDefault:"[Male Vocal]"
     },
     {
       id:"zouk", name:"Zouk", icon:"🌺", group:"Caribbean",
@@ -363,52 +340,51 @@ const KB = {
       tempoRange:[75,130], defaultBPM:95,
       instruments:["electric guitar","synthesizer pads","bass guitar","congas","drum machine","trumpet","saxophone","accordion","flute","rhythm guitar","keyboard","vocal harmonies"],
       production:["lush tropical arrangement","layered synthesizer pads","Caribbean reverb","smooth vocal production","wide stereo mix","rich harmony stacking","danceable low-end","warm tropical EQ"],
-      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Female Vocal]",
-      desc:"Caribbean dance music from the French Antilles — romantic vocals, flowing rhythms, and lush tropical production"
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Female Vocal]"
     }
   ],
 
   // ─── META TAGS ───────────────────────────────────────────────
   metaTags: {
     quality: [
-      { tag:"[Hyper-Realistic]", desc:"Highest-fidelity render. Captures breath, bow noise, room tone. Uses more credits — skip on test runs." },
-      { tag:"[Studio Quality]",  desc:"Broad quality baseline for all production styles. Pairs well with Hyper-Realistic." },
-      { tag:"[Mastered]",        desc:"Broadcast-ready: consistent loudness, final limiting, tonal balance." }
+      { tag:"[Hyper-Realistic]" },
+      { tag:"[Studio Quality]" },
+      { tag:"[Mastered]" }
     ],
     vocal: [
-      { tag:"[No Vocals]",    desc:"Removes all vocal content. Most reliable for instrumentals. Pair with 'no: vocals' for max effect." },
-      { tag:"[Instrumental]", desc:"Alternative to No Vocals. Sometimes produces a warmer tone. Use if No Vocals still leaks vocals." },
-      { tag:"[Female Vocal]", desc:"Feminine register and delivery. Best for R&B, pop, jazz, neo-soul." },
-      { tag:"[Male Vocal]",   desc:"Masculine register. Best for hip hop, soul, rock, jazz." },
-      { tag:"[Powerful]",     desc:"Projects full-voice intensity. Best for anthems, gospel, soul belting." },
-      { tag:"[Whispered]",    desc:"Intimate breathy delivery. Best for ASMR, ambient, confessional R&B." },
-      { tag:"[Falsetto]",     desc:"High register above the break. Best for neo-soul, R&B, indie pop." },
-      { tag:"[Raspy]",        desc:"Gritty, textured vocal tone. Best for blues, rock, dark hip hop." },
-      { tag:"[Breathy]",      desc:"Airy, soft texture. Best for lo-fi, dream pop, sensual R&B." }
+      { tag:"[No Vocals]" },
+      { tag:"[Instrumental]" },
+      { tag:"[Female Vocal]" },
+      { tag:"[Male Vocal]" },
+      { tag:"[Powerful]" },
+      { tag:"[Whispered]" },
+      { tag:"[Falsetto]" },
+      { tag:"[Raspy]" },
+      { tag:"[Breathy]" }
     ],
     production: [
-      { tag:"[Sidechain]",    desc:"Pumping compression — the kick ducks the other elements. Best for house, techno, EDM, any electronic music." },
-      { tag:"[Lo-Fi]",        desc:"Applies vinyl crackle, tape saturation, frequency roll-off. Best for lo-fi hip hop, indie, any production wanting vintage warmth." },
-      { tag:"[Dry Mix]",      desc:"Removes excess reverb — close, intimate sound. Best for jazz, blues, intimate R&B, any production that sounds too wet." },
-      { tag:"[Heavy Bass]",   desc:"Increases sub-bass presence significantly. Best for hip hop, trap, bass music, any genre needing more low end." },
-      { tag:"[808]",          desc:"Activates 808 bass drum and sub-bass engine. Best for trap, hip hop, any genre requiring 808 production." },
-      { tag:"[Distortion]",   desc:"Adds harmonic distortion. Best for rock, blues, industrial, any guitar-forward production." },
-      { tag:"[Reverb]",       desc:"Adds spacious room/hall reverb. Best for ambient, cinematic, any production needing space." },
-      { tag:"[Cinematic]",    desc:"Wide, dramatic production with large dynamic range. Best for film scores, trailers, epic productions." },
-      { tag:"[Orchestral]",   desc:"Adds strings, brass, and orchestral arrangement. Best for classical, cinematic, hip hop with orchestral samples." },
-      { tag:"[Vintage]",      desc:"Period-accurate production characteristics. Best for old school hip hop, classic R&B, 60s-80s era music." },
-      { tag:"[Live Drums]",   desc:"Shifts drum programming toward organic, live-sounding patterns. Best for jazz, soul, rock, neo-soul, any acoustic genre." },
-      { tag:"[Minimalist]",   desc:"Strips back arrangement — fewer elements, more space. Best for ambient, intimate R&B, minimal techno, any sparse production." }
+      { tag:"[Sidechain]" },
+      { tag:"[Lo-Fi]" },
+      { tag:"[Dry Mix]" },
+      { tag:"[Heavy Bass]" },
+      { tag:"[808]" },
+      { tag:"[Distortion]" },
+      { tag:"[Reverb]" },
+      { tag:"[Cinematic]" },
+      { tag:"[Orchestral]" },
+      { tag:"[Vintage]" },
+      { tag:"[Live Drums]" },
+      { tag:"[Minimalist]" }
     ],
     moodMeta: [
-      { tag:"[Dark]",        desc:"Shifts harmonic palette toward minor, dissonant, tense. Best for dark trap, noir jazz, minor-key anything." },
-      { tag:"[Euphoric]",    desc:"High-energy, uplifting — major key, bright synths. Best for festival EDM, uplifting trance, pop anthems." },
-      { tag:"[Melancholic]", desc:"Bittersweet, introspective — works with minor keys. Best for R&B ballads, indie, slow blues, reflective hip hop." },
-      { tag:"[Aggressive]",  desc:"High BPM feel, distorted elements, intense performance. Best for drill, heavy metal, dark trap, industrial techno." },
-      { tag:"[Chill]",       desc:"Low tempo, relaxed arrangement, warm tones. Best for lo-fi, chillout, ambient, late night R&B." },
-      { tag:"[Dreamy]",      desc:"Hazy, reverb-heavy, slow attack on instruments. Best for cloud rap, ambient, PBR&B, experimental R&B." },
-      { tag:"[Epic]",        desc:"Large-scale, climactic — climactic builds. Best for cinematic scores, big room EDM, orchestral hip hop." },
-      { tag:"[Tense]",       desc:"Unresolved harmonic movement, building anxiety. Best for horror, thriller scores, dark ambient." }
+      { tag:"[Dark]" },
+      { tag:"[Euphoric]" },
+      { tag:"[Melancholic]" },
+      { tag:"[Aggressive]" },
+      { tag:"[Chill]" },
+      { tag:"[Dreamy]" },
+      { tag:"[Epic]" },
+      { tag:"[Tense]" }
     ]
   },
 
@@ -484,5 +460,4 @@ const KB = {
     delivery: ["[Whispered]","[Soft]","[Gentle]","[Powerful]","[Belted]","[Shouted]","[Screamed]","[Intense]","[Smooth]","[Raspy]","[Breathy]","[Airy]","[Nasal]","[Soulful]","[Operatic]","[Falsetto]","[Head Voice]","[Chest Voice]","[Melodic]","[Tender]","[Aggressive]","[Harmonies]","[Ad-libs]","[Vocal Run]","[Melisma]","[Vibrato]","[Staccato]","[Legato]","[Choir]","[Chant]","[Growling]","[Rapped]","[Fast Rap]","[Slow Flow]","[Melodic Rap]","[Trap Flow]","[Double Time]","[Spoken]","[female lead]","[male lead]","[female narrator]","[male narrator]","[rap verse]","[gospel choir]","[diva solo]","[primal scream]","[intimate MC]"]
   },
 
-  commonExcludes:["vocals","drums","piano","guitar","bass","strings","brass","hi-hat","reverb","distortion","synth"]
-};
+  commonExcludes:["vocals","drums","piano","guitar","bass","strings","brass","hi-hat","reverb","distortion",

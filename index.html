@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Suno v5 Tag Generator</title>
+<title>Rick Mizik — RickAI Engine</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzBkMGQxMiIvPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzhiNWNmNiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzYjgyZjYiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDwhLS0gbm90ZSBzdGVtIC0tPgogIDxyZWN0IHg9IjE5IiB5PSI3IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjE0IiByeD0iMS4yIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPCEtLSBub3RlIGZsYWcgLS0+CiAgPHBhdGggZD0iTTIxLjUgNyBRMjggOSAyNiAxNSBRMjMgMTIgMjEuNSAxM1oiIGZpbGw9InVybCgjZykiLz4KICA8IS0tIG5vdGUgaGVhZCAtLT4KICA8ZWxsaXBzZSBjeD0iMTYiIGN5PSIyMSIgcng9IjUiIHJ5PSIzLjUiIHRyYW5zZm9ybT0icm90YXRlKC0xNSAxNiAyMSkiIGZpbGw9InVybCgjZykiLz4KPC9zdmc+">
 <style>
 :root {
   --bg: #0d0d12;
@@ -88,8 +89,9 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 /* ── BUTTONS ── */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 13px; cursor: pointer; transition: all .15s; font-family: inherit; }
 .btn:hover { background: var(--surface3); border-color: var(--text-dim); }
-.btn-primary { background: var(--l1); border-color: var(--l1); color: #fff; font-weight: 600; padding: 8px 16px; width: 100%; justify-content: center; }
-.btn-primary:hover { opacity: .9; }
+.btn-primary { background: linear-gradient(135deg, var(--l1), var(--l2)); border: none; color: #fff; font-weight: 700; padding: 10px 22px; border-radius: 22px; box-shadow: 0 3px 12px rgba(59,130,246,.35); transition: all .2s; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 18px rgba(59,130,246,.45); opacity:1; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn-copy { background: var(--surface3); font-size: 13px; padding: 4px 10px; }
 .btn-copy.copied { background: var(--l4); border-color: var(--l4); color: #fff; }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--text-dim); }
@@ -391,6 +393,192 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 .vocal-lib-name { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
 .vocal-lib-tags { font-size: 11px; color: var(--text-muted); font-family: monospace; }
 .vocal-lib-actions { display: flex; gap: 4px; }
+
+/* ── WIZARD ── */
+.wizard-wrap {
+  display: flex; flex-direction: column; gap: 0;
+  --sc: #3b82f6;
+}
+
+/* ── Track (step pills) ── */
+.wiz-track {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 10px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.wiz-track::-webkit-scrollbar { display: none; }
+.wiz-rail {
+  display: flex; align-items: center;
+  min-width: max-content; gap: 0;
+}
+.wiz-line {
+  flex: 1; height: 2px; min-width: 18px;
+  background: var(--border); margin-bottom: 20px;
+  transition: background .35s;
+}
+.wiz-line.lit { background: color-mix(in srgb, var(--sc) 60%, transparent); }
+
+.wiz-pill {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  border: none; background: none; cursor: pointer; padding: 0 8px;
+  font-family: inherit; transition: opacity .2s;
+}
+.wiz-pill:disabled { opacity: .38; cursor: default; }
+.wiz-pill-ring {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: all .25s;
+}
+.wiz-pill.active .wiz-pill-ring {
+  background: var(--sc);
+  border-color: var(--sc);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--sc) 18%, transparent);
+  transform: scale(1.12);
+}
+.wiz-pill.done .wiz-pill-ring {
+  background: color-mix(in srgb, var(--sc) 14%, var(--surface));
+  border-color: var(--sc);
+  font-size: 13px; color: var(--sc);
+}
+.wiz-pill-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .07em; color: var(--text-dim);
+  white-space: nowrap; transition: color .2s;
+}
+.wiz-pill.active .wiz-pill-lbl { color: var(--sc); }
+.wiz-pill.done   .wiz-pill-lbl { color: var(--sc); opacity: .7; }
+
+/* ── Step header ── */
+.wiz-hdr {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 20px 20px 16px;
+  background: linear-gradient(140deg,
+    color-mix(in srgb, var(--sc) 9%, var(--surface)) 0%,
+    var(--surface) 65%);
+  border-bottom: 1px solid var(--border);
+}
+.wiz-hdr-icon {
+  width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--sc), color-mix(in srgb, var(--sc) 55%, #000));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--sc) 38%, transparent);
+}
+.wiz-hdr-text { flex: 1; min-width: 0; }
+.wiz-hdr-num {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--sc);
+  margin-bottom: 3px;
+}
+.wiz-hdr-title {
+  font-size: 20px; font-weight: 800; color: var(--text);
+  margin: 0 0 4px; line-height: 1.15;
+}
+.wiz-hdr-hint {
+  font-size: 12px; color: var(--text-dim); margin: 0; line-height: 1.5;
+}
+
+/* ── Step body ── */
+.wiz-body { flex: 1; }
+.wiz-body .card {
+  border-radius: 0 !important;
+  border-left: none !important; border-right: none !important;
+  border-top: none !important;
+}
+
+/* ── Footer nav ── */
+.wiz-footer {
+  position: sticky; bottom: 0; z-index: 10;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.wiz-step-dots {
+  display: flex; gap: 6px; align-items: center;
+}
+.wiz-sdot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border); transition: all .2s;
+}
+.wiz-sdot.a {
+  background: var(--sc);
+  width: 18px; border-radius: 3px;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--sc) 50%, transparent);
+}
+.wiz-sdot.d { background: color-mix(in srgb, var(--sc) 45%, transparent); }
+
+.wiz-btn {
+  border: none; border-radius: 24px;
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  padding: 9px 20px; cursor: pointer; transition: all .2s;
+  white-space: nowrap;
+}
+.wiz-btn-back {
+  background: var(--surface2); color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+.wiz-btn-back:hover { color: var(--text); border-color: var(--text-dim); }
+.wiz-btn-restart {
+  background: transparent; color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 9px 12px; font-size: 16px;
+}
+.wiz-btn-restart:hover { color: #ef4444; border-color: #ef4444; background: rgba(239,68,68,.08); }
+.wiz-btn-save {
+  background: transparent; color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 9px 12px; font-size: 16px;
+}
+.wiz-btn-save:hover { color: #22c55e; border-color: #22c55e; background: rgba(34,197,94,.08); }
+.wiz-btn-next {
+  background: linear-gradient(135deg, var(--sc), color-mix(in srgb, var(--sc) 65%, #000));
+  color: #fff;
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--sc) 40%, transparent);
+}
+.wiz-btn-next:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px color-mix(in srgb, var(--sc) 55%, transparent);
+}
+.wiz-btn-next:disabled {
+  opacity: .38; cursor: not-allowed;
+  transform: none; box-shadow: none;
+}
+
+/* ── APP FOOTER ── */
+.app-footer {
+  text-align: center; padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  flex-wrap: wrap;
+}
+.app-footer-name {
+  font-size: 13px; font-weight: 800; letter-spacing: .02em;
+  background: linear-gradient(90deg, var(--l1), var(--l2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.app-footer-engine {
+  font-size: 11px; font-weight: 700; color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.app-footer-version {
+  font-family: monospace; font-weight: 700;
+  color: var(--text-dim);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 6px; font-size: 11px;
+}
+.app-footer-sep { color: var(--border); font-size: 10px; }
+
+/* ── LANG TOGGLE ── */
+.lang-toggle { display: flex; gap: 3px; align-items: center; }
+.lang-btn { padding: 4px 10px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; font-family: inherit; letter-spacing: .03em; }
+.lang-btn.active { background: linear-gradient(135deg, var(--l1), var(--l2)); border-color: var(--l1); color: #fff; box-shadow: 0 2px 8px rgba(59,130,246,.3); }
+.lang-btn:hover:not(.active) { border-color: var(--text-dim); color: var(--text); }
 </style>
 </head>
 <body>
@@ -399,12 +587,15 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
   <div class="header-inner">
     <div class="header-logo">🎵</div>
     <div class="header-text">
-      <h1>Suno v5 Tag Generator</h1>
-      <p>Build precision prompts for Suno AI v5 — style field + lyrics box</p>
+      <h1>Rick Mizik</h1>
+      <p>RickAI Engine — Suno v5 precision prompt builder</p>
     </div>
     <div class="header-actions">
+      <div class="lang-toggle">
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" id="lang-fr" onclick="setLang('fr')">FR</button>
+      </div>
       <div class="theme-row">
-        <span class="theme-row-label">Theme</span>
         <div id="theme-swatches" style="display:flex;gap:4px"></div>
       </div>
       <button class="btn" onclick="openPresets()">⭐ Presets</button>
@@ -432,14 +623,23 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
       <input class="text-input" id="preset-name-input" type="text" placeholder="Preset name…">
       <button class="btn" onclick="savePreset()">Save Current</button>
     </div>
-    <div id="preset-list"></div>
+    <div class="preset-list" id="preset-list"></div>
     <div style="text-align:right;margin-top:14px">
       <button class="btn" onclick="closePresets()">Close</button>
     </div>
   </div>
 </div>
 
+<footer class="app-footer">
+  <span class="app-footer-name">Rick Mizik</span>
+  <span class="app-footer-sep">·</span>
+  <span class="app-footer-engine">RickAI Engine</span>
+  <span class="app-footer-sep">·</span>
+  <span class="app-footer-version" id="app-version-lbl"></span>
+</footer>
+
 <script src="kb.js"></script>
+<script src="lang.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

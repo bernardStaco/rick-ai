@@ -1,3 +1,6 @@
+// Rick Mizik — RickAI Engine
+const APP_VERSION = "1.0.0";
+
 // KB loaded from kb.js
 void KB; // reference to confirm kb.js loaded
 
@@ -23,7 +26,9 @@ let S = {
   freeLyrics: "",
   open: { subgenre:true, mood:true, tempo:true, instruments:true, production:true, quality:true, vocal:true, metaprod:false, metamood:false, artistref:false, exclude:true, moreopts:true, vocbuild:false, custom:false, lyrics:true },
   theme: "light",
-  vocalistProfile: null
+  vocalistProfile: null,
+  step: 1,
+  lang: "en"
 };
 
 let dragIdx = null;
@@ -117,16 +122,19 @@ function assemble() {
 }
 
 function assembleLyrics() {
-  const cmdBlock = S.vocalistProfile ? buildVocalistCmdBlock(S.vocalistProfile) : "";
+  // Use live draft (always current) — fall back to saved profile
+  const _vp = S.vocalistDraft || S.vocalistProfile;
+  const cmdBlock = _vp ? buildVocalistCmdBlock(_vp) : "";
   if (!S.useGuidedLyrics) {
     return cmdBlock ? cmdBlock + "\n\n" + S.freeLyrics : S.freeLyrics;
   }
   const secs = S.lyricsSections;
-  if (!secs.length) return "";
+  if (!secs.length) return cmdBlock || "";
   return secs.map((sec, i) => {
     const tags = sec.deliveryTags.join("");
-    const cmdLine = (i === 0 && cmdBlock) ? cmdBlock + "\n" : "";
-    return `${sec.structTag}${tags}\n${cmdLine}${sec.text}`;
+    // vocalist command block goes on its own line inside the FIRST section
+    const cmdLine = (i === 0 && cmdBlock) ? "\n" + cmdBlock : "";
+    return `${sec.structTag}${tags}${cmdLine}\n${sec.text}`;
   }).join("\n\n");
 }
 
@@ -162,15 +170,17 @@ function toggleSection(id) { S.open[id] = !S.open[id]; render(); }
 
 function sectionCard(id, badge, badgeStyle, title, hint, color, summary, body, warnText) {
   const open = S.open[id] !== false;
+  const tTitle = t("section." + id + ".title") || title;
+  const tHint  = t("section." + id + ".hint")  || hint;
   const rhs = (!open && summary)
     ? `<span class="layer-summary">${esc(summary)}</span>`
-    : `<div class="layer-hint">${hint}</div>`;
+    : `<div class="layer-hint">${tHint}</div>`;
   const warnBadge = `<span class="layer-hdr-warn${warnText?"":" hdr-warn-hidden"}" id="${id}-hdr-warn">${warnText?"⚠ "+esc(warnText):""}</span>`;
   return `
     <div class="card">
       <div class="layer-hdr" onclick="toggleSection('${id}')" style="--layer-color:${color}">
         <div class="layer-badge"${badgeStyle?` style="${badgeStyle}"`:""}>${badge}</div>
-        <div class="layer-title">${title}</div>
+        <div class="layer-title">${tTitle}</div>
         ${rhs}
         ${warnBadge}
         <span class="acc-chevron ${open?"open":""}">▾</span>
@@ -196,9 +206,17 @@ function smLyrics()  { return S.lyricsSections.length?`${S.lyricsSections.map(s=
 // RENDER
 // ═══════════════════════════════════════════════════════════════
 function render() {
-  document.getElementById("builder-col").innerHTML = builderHTML();
+  document.getElementById("builder-col").innerHTML = wizardHTML();
   document.getElementById("preview-col").innerHTML = previewHTML();
   bindTempoSlider();
+  renderLangButtons();
+}
+
+function renderLangButtons() {
+  const en = document.getElementById("lang-en");
+  const fr = document.getElementById("lang-fr");
+  if (en) en.classList.toggle("active", S.lang === "en");
+  if (fr) fr.classList.toggle("active", S.lang === "fr");
 }
 
 function builderHTML() {
@@ -226,7 +244,7 @@ function genrePickerHTML() {
       <div class="card">
         <div class="layer-hdr" style="--layer-color:var(--l1)">
           <div class="layer-badge">L1</div>
-          <div class="layer-title">Genre Anchor</div>
+          <div class="layer-title">${t("genreAnchorTitle")}</div>
           <div class="check-badge">✓</div>
         </div>
         <div class="genre-sel-row">
@@ -234,7 +252,7 @@ function genrePickerHTML() {
           <div class="genre-sel-info">
             <div class="genre-sel-name">${esc(g.name)}</div>
             <div class="genre-sel-meta">${esc(g.group)}</div>
-            <div class="genre-sel-desc">${esc(g.desc)}</div>
+            <div class="genre-sel-desc">${esc(kbDesc(g.id))}</div>
           </div>
           <button class="btn btn-ghost" onclick="clearGenre()" style="flex-shrink:0">↩ Change</button>
         </div>
@@ -246,7 +264,7 @@ function genrePickerHTML() {
         `<div class="subgenre-card-inner">
           ${subLabel ? `<div class="subgenre-selected-badge" style="margin-bottom:10px">✓ ${esc(subLabel)}</div>` : ""}
           <div class="chip-group">
-            ${g.subgenres.map(sg => `<button class="chip${S.subgenre===sg?" active":""}" onclick="toggleSub('${esc(sg)}')">${esc(sg)}</button>`).join("")}
+            ${g.subgenres.map(sg=>{const _h=chipHint(sg)||kbDesc(sg);return`<button class="chip${S.subgenre===sg?" active":""}" onclick="toggleSub('${esc(sg)}')"${_h?` data-tip="${esc(_h)}"`:""}>${esc(sg)}</button>`;}).join("")}
             <button class="btn-add" onclick="addCustomSub()">+ Custom</button>
           </div>
           ${S.customSubgenre ? `<div class="custom-row" style="margin-top:10px">
@@ -271,7 +289,7 @@ function genrePickerHTML() {
     const starLabel = isFav ? "Remove from favorites" : "Add to favorites";
     const starChar = isFav ? "★" : "☆";
     return `<div class="genre-card-wrap">
-      <button class="genre-card" onclick="selectGenre('${g.id}')" title="${esc(g.desc)}">
+      <button class="genre-card" onclick="selectGenre('${g.id}')" title="${esc(kbDesc(g.id))}">
         <div class="genre-icon">${g.icon}</div>
         <div class="genre-name">${esc(g.name)}</div>
       </button>
@@ -321,12 +339,12 @@ function moodHTML() {
       return `<div class="mood-group">
         <div class="mood-primary-row">
           <button class="mood-primary-btn${S.moods.includes(mg.primary)?" active":""}${pc?" warn":""}"
-                  onclick="toggleMood('${esc(mg.primary)}')" title="${pc?"⚠️ "+pc.reason:""}">
+                  onclick="toggleMood('${esc(mg.primary)}')" title="${pc?"⚠️ "+pc.reason:""}" ${chipHint(mg.primary)?`data-tip="${esc(chipHint(mg.primary))}"`:""}>
             ${esc(mg.primary)}${pc?` <span class="warn-dot">⚠</span>`:""}
           </button>
         </div>
         <div class="mood-modifiers">
-          ${mg.mods.map(mod => { const mc=moodConflict(mod); return `<button class="chip chip-sm${S.moods.includes(mod)?" active-l2":""}${mc?" warn":""}" onclick="toggleMood('${esc(mod)}')">${esc(mod)}</button>`; }).join("")}
+          ${mg.mods.map(mod => { const mc=moodConflict(mod); return `<button class="chip chip-sm${S.moods.includes(mod)?" active-l2":""}${mc?" warn":""}" onclick="toggleMood('${esc(mod)}')" ${chipHint(mod)?`data-tip="${esc(chipHint(mod))}"`:""}>${esc(mod)}</button>`; }).join("")}
         </div>
       </div>`;
     }).join("")}
@@ -442,7 +460,7 @@ function productionHTML() {
   const g = G();
   const body = `<div class="card-inner">
     <div class="chip-group">
-      ${g.production.map(p=>`<button class="chip${S.production.includes(p)?" active-l5":""}" onclick="toggleProd('${esc(p)}')">${esc(p)}</button>`).join("")}
+      ${g.production.map(p=>{const _t=prodTip(p);return`<button class="chip${S.production.includes(p)?" active-l5":""}" onclick="toggleProd('${esc(p)}')"${_t?` data-tip="${esc(_t)}"`:""}>${esc(p)}</button>`;})}
     </div>
     ${S.customProduction.map((p,i)=>`<div class="custom-row" style="margin-top:6px">
       <input class="text-input" value="${esc(p)}" oninput="S.customProduction[${i}]=this.value;patchPreviews()" placeholder="Production descriptor...">
@@ -455,11 +473,11 @@ function productionHTML() {
 
 function qualityHTML() {
   const body = `<div class="card-inner">
-    ${KB.metaTags.quality.map(qt=>`<label class="tag-item${S.qualityTags.includes(qt.tag)?" selected-quality":""}"
-        data-tip="${esc(qt.desc)}">
+    ${KB.metaTags.quality.map(qt=>{const d=getTagDesc(qt.tag);return`<label class="tag-item${S.qualityTags.includes(qt.tag)?" selected-quality":""}"
+        data-tip="${esc(d)}">
       <input type="checkbox" ${S.qualityTags.includes(qt.tag)?"checked":""} onchange="toggleQTag('${esc(qt.tag)}')" style="accent-color:var(--l6)">
-      <div><div class="tag-label">${esc(qt.tag)}</div><div class="tag-desc">${esc(qt.desc)}</div></div>
-    </label>`).join("")}
+      <div><div class="tag-label">${esc(qt.tag)}</div><div class="tag-desc">${esc(d)}</div></div>
+    </label>`}).join("")}
   </div>`;
   return sectionCard("quality","L6","","Quality Tags","Trigger high-fidelity render — skip on test runs","var(--l6)",smQuality(),body);
 }
@@ -473,12 +491,13 @@ function metaTagsHTML() {
     <div class="card-inner">
       ${KB.metaTags.vocal.map(vt => {
         const isSel=S.vocalTags.includes(vt.tag), wc=!isSel&&wouldConflict(vt.tag);
+        const vtd=getTagDesc(vt.tag);
         return `<label class="tag-item${isSel?" selected-vocal":""}${wc?" conflict-item":""}"
-            data-tip="${esc(vt.desc)}">
+            data-tip="${esc(vtd)}">
           <input type="checkbox" ${isSel?"checked":""} onchange="toggleVTag('${esc(vt.tag)}')" style="accent-color:var(--pink)">
           <div>
-            <div class="tag-label">${esc(vt.tag)} ${wc?`<span class="conflict-badge">⛔ conflict</span>`:""}</div>
-            <div class="tag-desc">${esc(vt.desc)}</div>
+            <div class="tag-label">${esc(vt.tag)} ${wc?`<span class="conflict-badge">⚡ conflict</span>`:""}</div>
+            <div class="tag-desc">${esc(vtd)}</div>
           </div>
         </label>`;
       }).join("")}
@@ -493,7 +512,7 @@ function metaProductionHTML() {
     <div class="meta-tag-grid">
       ${KB.metaTags.production.map(t => `
         <button class="meta-tag-btn${sel.includes(t.tag)?" active-prod":""}"
-            onclick="toggleMetaProd('${esc(t.tag)}')" data-tip="${esc(t.desc)}">
+            onclick="toggleMetaProd('${esc(t.tag)}')" data-tip="${esc(kbDesc(t.tag))}">
           <div class="meta-tag-name">${esc(t.tag)}</div>
         </button>`).join("")}
     </div>
@@ -509,7 +528,7 @@ function metaMoodHTML() {
     <div class="meta-tag-grid">
       ${KB.metaTags.moodMeta.map(t => `
         <button class="meta-tag-btn${sel.includes(t.tag)?" active-mood":""}"
-            onclick="toggleMetaMood('${esc(t.tag)}')" data-tip="${esc(t.desc)}">
+            onclick="toggleMetaMood('${esc(t.tag)}')" data-tip="${esc(kbDesc(t.tag))}">
           <div class="meta-tag-name">${esc(t.tag)}</div>
         </button>`).join("")}
     </div>
@@ -522,8 +541,7 @@ function metaMoodHTML() {
 function artistRefHTML() {
   const body = `<div class="card-inner">
     <div class="artist-tip-box">
-      <strong>How to use:</strong> Artist references encode instrumentation, tone, era, and emotional register in a single phrase.
-      Use <em>Artist-style</em> for broad influence, <em>Artist + era</em> for a specific sound, or <em>Artist + technique</em> for a specific element.
+      <strong>${t("artistRefHowToLabel")}</strong> ${t("artistRefHowToBody")}
     </div>
     <div class="artist-ref-input-row">
       <input class="text-input" id="artist-ref-input" value="${esc(S.artistRef)}"
@@ -533,7 +551,7 @@ function artistRefHTML() {
     ${(() => {
       const g = G();
       const groupRefs = g && KB.artistRefs[g.group] ? KB.artistRefs[g.group] : null;
-      if (!groupRefs) return `<div class="artist-ref-none">No curated references for this genre — type any artist name above.</div>`;
+      if (!groupRefs) return `<div class="artist-ref-none">${t("artistRefNone")}</div>`;
       return Object.entries(groupRefs).map(([sub, artists]) => `
         <div class="artist-ref-sub" style="margin-bottom:12px">
           <div class="artist-ref-sub-label">${esc(sub)}</div>
@@ -628,7 +646,7 @@ function previewHTML() {
       <div class="card">
         <div class="preview-empty">
           <div class="preview-empty-icon">🎛️</div>
-          <p>Select a genre to start building your v5 prompt</p>
+          <p>${t("noGenreHint")}</p>
         </div>
       </div>
     `;
@@ -676,10 +694,10 @@ function lyricsBuilderHTML() {
     ${showVocalist ? `<div class="lyr-vocalist-wrap">${vocalistBuilderHTML()}</div>` : ""}
     <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0;flex-wrap:wrap;gap:8px">
       <div class="tab-row">
-        <button class="btn-tab${S.useGuidedLyrics?" active":""}" onclick="S.useGuidedLyrics=true;render()">Guided</button>
-        <button class="btn-tab${!S.useGuidedLyrics?" active":""}" onclick="S.useGuidedLyrics=false;render()">Free Form</button>
+        <button class="btn-tab${S.useGuidedLyrics?" active":""}" onclick="S.useGuidedLyrics=true;render()">${t("guidedTab")}</button>
+        <button class="btn-tab${!S.useGuidedLyrics?" active":""}" onclick="S.useGuidedLyrics=false;render()">${t("freeformTab")}</button>
       </div>
-      <div style="font-size:10px;color:var(--warn)">&#x26A0;&#xFE0F; Lyrics box: lyrics + structural tags ONLY</div>
+      <div style="font-size:10px;color:var(--warn)">&#x26A0;&#xFE0F; ${t("lyricsWarning")}</div>
     </div>
     ${S.useGuidedLyrics ? `${songStructureMapHTML()}${guidedLyricsHTML()}` : freeformLyricsHTML()}
   `;
@@ -749,7 +767,7 @@ function lyricsSectionHTML(sec, i) {
             <div class="delivery-group">
               <span class="delivery-group-label">${grp}</span>
               ${tags.map(dt => `<button class="chip chip-xs chip-delivery${sec.deliveryTags.includes(dt)?" active":""}"
-                  onclick="toggleDelivery(${i},'${esc(dt)}')">${esc(dt.replace(/[\[\]]/g,""))}</button>`).join("")}
+                  onclick="toggleDelivery(${i},'${esc(dt)}')" ${chipHint(dt)?`data-tip="${esc(chipHint(dt))}"`:""}>${esc(dt.replace(/[\[\]]/g,""))}</button>`).join("")}
             </div>
           `).join("")}
         </div>
@@ -841,12 +859,12 @@ function outputHTML() {
         <div>
           <div class="output-field-label">STYLE FIELD</div>
           <textarea class="output-textarea" id="out-style" rows="6" readonly onclick="this.select()">${esc(assemble())}</textarea>
-          <button class="btn btn-primary" onclick="copyFinal('style')">📋 Copy Style Field</button>
+          <button class="btn btn-primary" id="copy-style-final-btn" onclick="copyFinal('style')">📋 Copy Style Field</button>
         </div>
         <div>
           <div class="output-field-label">LYRICS BOX</div>
           <textarea class="output-textarea" id="out-lyrics" rows="6" readonly onclick="this.select()">${esc(assembleLyrics())}</textarea>
-          <button class="btn btn-primary" onclick="copyFinal('lyrics')">📋 Copy Lyrics Box</button>
+          <button class="btn btn-primary" id="copy-lyrics-final-btn" onclick="copyFinal('lyrics')">📋 Copy Lyrics Box</button>
         </div>
       </div>
     </div>
@@ -915,6 +933,7 @@ function clearGenre() {
   S.qualityTags = []; S.vocalTags = [];
   S.metaProductionTags = []; S.metaMoodTags = []; S.artistRef = "";
   S.vocalGender = null; S.weirdness = 50; S.styleInfluence = 50;
+  S.step = 1;
   render();
 }
 
@@ -944,6 +963,7 @@ function selectGenre(id) {
   S.production = g.production.slice(0, 2);
   S.moods = [];
   S.metaProductionTags = []; S.metaMoodTags = []; S.artistRef = "";
+  S.step = 2;
   render();
 }
 
@@ -979,12 +999,21 @@ function toggleQTag(t) {
   render();
 }
 
+const _EXCL_VOCAL = ["[No Vocals]","[Instrumental]"];
 function toggleVTag(t) {
-  if (!S.vocalTags.includes(t) && wouldConflict(t)) {
-    alert("⛔ Hard conflict! Remove the conflicting tag first.");
-    return;
+  const isOn = S.vocalTags.includes(t);
+  if (isOn) {
+    S.vocalTags = S.vocalTags.filter(x => x !== t);
+  } else {
+    if (_EXCL_VOCAL.includes(t)) {
+      // Adding exclusion tag — clear all non-exclusion vocal tags
+      S.vocalTags = S.vocalTags.filter(x => _EXCL_VOCAL.includes(x));
+    } else {
+      // Adding vocal style/gender — clear exclusion tags
+      S.vocalTags = S.vocalTags.filter(x => !_EXCL_VOCAL.includes(x));
+    }
+    S.vocalTags.push(t);
   }
-  S.vocalTags = S.vocalTags.includes(t) ? S.vocalTags.filter(x=>x!==t) : [...S.vocalTags, t];
   render();
 }
 
@@ -1034,6 +1063,25 @@ function renderPresetList() {
 function getPresets() {
   try { return JSON.parse(localStorage.getItem("sunoPresets") || "[]"); } catch(e) { return []; }
 }
+function quickSavePreset() {
+  if (!S.genre) return;
+  const def = [S.genre, S.subgenre, S.moods[0]].filter(Boolean).join(' · ');
+  const name = prompt('Save preset as:', def);
+  if (name === null || !name.trim()) return;
+  const nm = name.trim();
+  const lib = JSON.parse(localStorage.getItem('suno_presets') || '[]');
+  lib.unshift({ name: nm, state: JSON.parse(JSON.stringify(S)), saved: Date.now() });
+  localStorage.setItem('suno_presets', JSON.stringify(lib.slice(0, 40)));
+  const fb = document.createElement('div');
+  fb.textContent = '✓ Saved: ' + nm;
+  Object.assign(fb.style, { position:'fixed', bottom:'80px', right:'20px',
+    background:'#22c55e', color:'#fff', padding:'8px 16px', borderRadius:'8px',
+    fontSize:'13px', fontWeight:'700', zIndex:'9999',
+    boxShadow:'0 4px 12px rgba(0,0,0,.4)' });
+  document.body.appendChild(fb);
+  setTimeout(() => { fb.style.opacity='0'; setTimeout(()=>fb.remove(),300); }, 2200);
+}
+
 function savePreset() {
   const nameEl = document.getElementById("preset-name-input");
   const name = (nameEl ? nameEl.value.trim() : "") || "Untitled Preset";
@@ -1112,8 +1160,19 @@ function scrollToSection(id) {
 }
 
 // ── COPY / EXPORT / IMPORT ────────────────────────────────────
+function _clipFallback(text) {
+  // Works in file:// and older browsers
+  const ta = Object.assign(document.createElement("textarea"), {
+    value: text, style: "position:fixed;top:-999px;left:-999px;opacity:0"
+  });
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand("copy"); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
 function copyText(text, btnId) {
-  navigator.clipboard.writeText(text).then(() => {
+  const flash = () => {
     const btn = document.getElementById(btnId);
     if (btn) {
       const o = btn.textContent;
@@ -1121,28 +1180,33 @@ function copyText(text, btnId) {
       btn.classList.add("copied");
       setTimeout(() => { btn.textContent = o; btn.classList.remove("copied"); }, 2000);
     }
-  });
+  };
+  try {
+    if (navigator.clipboard && location.protocol !== "file:") {
+      navigator.clipboard.writeText(text).then(flash).catch(() => { _clipFallback(text); flash(); });
+    } else {
+      _clipFallback(text); flash();
+    }
+  } catch(e) { _clipFallback(text); flash(); }
 }
 
 function copyLyrics() {
-  const text = assembleLyrics();
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById("copy-lyr-btn");
-    if (btn) {
-      const o = btn.textContent;
-      btn.textContent = "✓ Copied!";
-      btn.classList.add("copied");
-      setTimeout(() => { btn.textContent = o; btn.classList.remove("copied"); }, 2000);
-    }
-  });
+  copyText(assembleLyrics(), "copy-lyr-btn");
 }
 
 function copyFinal(type) {
   const text = type === "style" ? assemble() : assembleLyrics();
-  navigator.clipboard.writeText(text).then(() => {
-    const el2 = document.querySelector(type === "style" ? "#out-style" : "#out-lyrics");
-    if (el2) { el2.style.borderColor = "var(--l4)"; setTimeout(() => el2.style.borderColor = "", 1500); }
-  });
+  const btnId = type === "style" ? "copy-style-final-btn" : "copy-lyrics-final-btn";
+  _clipFallback(text);
+  const ta = document.querySelector(type === "style" ? "#out-style" : "#out-lyrics");
+  if (ta) { ta.style.borderColor = "var(--l4)"; setTimeout(() => ta.style.borderColor = "", 1500); }
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    const o = btn.textContent;
+    btn.textContent = String.fromCharCode(10003) + " Copied!";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = o; btn.classList.remove("copied"); }, 2000);
+  }
 }
 
 function exportJSON() {
@@ -1318,23 +1382,23 @@ function vocalistBuilderHTML() {
   const lib = getVocalistLibrary();
 
   const typeRow = VOICE_TYPES.map(t =>
-    `<button class="chip${d.type===t?" active":""}" onclick="setVocalDraft('type','${t}')">${t}</button>`
+    `<button class="chip${d.type===t?" active":""}" onclick="setVocalDraft('type','${t}')" ${chipHint(t)?`data-tip="${esc(chipHint(t))}"`:""}>${t}</button>`
   ).join("");
 
   const qualRow = VOICE_QUALITIES.map(q =>
-    `<button class="chip${d.qualities.includes(q)?" active":""}" onclick="toggleVocalDraftArr('qualities','${q}')">${q}</button>`
+    `<button class="chip${d.qualities.includes(q)?" active":""}" onclick="toggleVocalDraftArr('qualities','${q}')" ${chipHint(q)?`data-tip="${esc(chipHint(q))}"`:""}>${q}</button>`
   ).join("");
 
   const regRow = VOICE_REGISTERS.map(r =>
-    `<button class="chip${d.register===r?" active":""}" onclick="setVocalDraft('register','${r}')">${r}</button>`
+    `<button class="chip${d.register===r?" active":""}" onclick="setVocalDraft('register','${r}')" ${chipHint(r)?`data-tip="${esc(chipHint(r))}"`:""}>${r}</button>`
   ).join("");
 
   const delRow = VOICE_DELIVERY.map(v =>
-    `<button class="chip${d.delivery.includes(v)?" active":""}" onclick="toggleVocalDraftArr('delivery','${v}')">${v}</button>`
+    `<button class="chip${d.delivery.includes(v)?" active":""}" onclick="toggleVocalDraftArr('delivery','${v}')" ${chipHint(v)?`data-tip="${esc(chipHint(v))}"`:""}>${v}</button>`
   ).join("");
 
   const timbreRow = VOICE_TIMBRE.map(t =>
-    `<button class="chip${d.timbre && d.timbre.includes(t)?" active":""}" onclick="toggleVocalDraftArr('timbre','${t}')">${t}</button>`
+    `<button class="chip${d.timbre && d.timbre.includes(t)?" active":""}" onclick="toggleVocalDraftArr('timbre','${t}')" ${chipHint(t)?`data-tip="${esc(chipHint(t))}"`:""}>${t}</button>`
   ).join("");
 
   const pitchRow = VOICE_PITCH_PRESETS.map(p =>
@@ -1358,7 +1422,7 @@ function vocalistBuilderHTML() {
             <button class="btn btn-xs btn-danger-ghost" onclick="deleteVocalistProfile(${i})">&#x2715;</button>
           </div>
         </div>`).join("")}
-    </div>` : `<div class="fav-empty" style="padding:8px 0">No saved vocalists yet</div>`;
+    </div>` : `<div class="fav-empty" style="padding:8px 0">${t("noVocalists")}</div>`;
 
   const body = `
     <div class="card-inner" style="padding-bottom:4px">
@@ -1383,18 +1447,18 @@ function vocalistBuilderHTML() {
       ${preview ? `<div class="vo-preview">&#x2192; <code>${esc(preview)}</code></div>` : ""}
       ${cmdBlock ? `<div class="vo-preview" style="margin-top:4px">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span>&#x1F4CB; Lyrics command block:</span>
+          <span>&#x1F4CB; ${t("cmdBlockLabel")}</span>
           <code>${esc(cmdBlock)}</code>
-          <button class="btn btn-xs" onclick="copyVocalistCmdBlock()">Copy</button>
+          <button class="btn btn-xs" onclick="copyVocalistCmdBlock()">${t("copyBtn")}</button>
         </div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Paste at the very top of your lyrics, before [Verse 1]</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px">${t("cmdBlockHint")}</div>
       </div>` : ""}
       <div class="vo-actions">
-        <input class="text-input" style="flex:1;font-size:13px" placeholder="Vocalist name (optional)..."
+        <input class="text-input" style="flex:1;font-size:13px" placeholder="${t('vocalistNamePh')}"
           value="${esc(d.name)}" oninput="S.vocalistDraft.name=this.value">
-        <button class="btn" onclick="applyVocalistDraft()" ${preview?"":"disabled"}>Use</button>
-        <button class="btn" onclick="saveVocalistDraft()" ${preview?"":"disabled"}>Save</button>
-        <button class="btn btn-ghost" onclick="clearVocalistDraft()">Clear</button>
+        <button class="btn" onclick="applyVocalistDraft()" ${preview?"":"disabled"}>${t("useBtn")}</button>
+        <button class="btn" onclick="saveVocalistAs()" ${preview?"":"disabled"}>${t("saveBtn")}</button>
+        <button class="btn btn-ghost" onclick="clearVocalistDraft()">${t("clearBtn")}</button>
       </div>
     </div>
     <div class="card-inner" style="border-top:1px solid var(--border);padding-top:12px">
@@ -1440,7 +1504,15 @@ function toggleVocalDraftArr(key, val) {
 function applyVocalistDraft() {
   if (!S.vocalistDraft) return;
   S.vocalistProfile = { ...S.vocalistDraft, _idx: null };
-  patchPreviews();
+  render();
+}
+
+function saveVocalistAs() {
+  if (!S.vocalistDraft) return;
+  const name = prompt(t("saveAsTitle"), S.vocalistDraft.name || t("saveAsPlaceholder"));
+  if (name === null) return;
+  S.vocalistDraft.name = name.trim() || S.vocalistDraft.name || "Vocalist";
+  saveVocalistDraft();
 }
 
 function saveVocalistDraft() {
@@ -1487,28 +1559,234 @@ function clearVocalistDraft() {
 function buildVocalistCmdBlock(vp) {
   if (!vp) return "";
   const parts = [];
+  // Voice type as Suno tag
+  if (vp.type && vp.type !== "Unspecified") {
+    parts.push("[" + vp.type + " Voice]");
+    // Range exclusions for classical types
+    const blMap = {
+      "Bass":          ["no falsetto","no tenor","no soprano"],
+      "Baritone":      ["no falsetto","no soprano"],
+      "Tenor":         ["no bass","no baritone","no soprano"],
+      "Alto":          ["no soprano","no falsetto"],
+      "Mezzo-Soprano": ["no bass","no baritone"],
+      "Soprano":       ["no bass","no baritone","no tenor"],
+    };
+    if (blMap[vp.type]) blMap[vp.type].forEach(b => parts.push("[" + b + "]"));
+  }
   if (vp.timbre && vp.timbre.length) vp.timbre.forEach(t => parts.push("[" + t + "]"));
   if (vp.pitchRange) parts.push("[" + vp.pitchRange + "]");
-  const blMap = {
-    "Bass":          ["no falsetto","no tenor","no soprano"],
-    "Baritone":      ["no falsetto","no soprano"],
-    "Tenor":         ["no bass","no baritone","no soprano"],
-    "Alto":          ["no soprano","no falsetto"],
-    "Mezzo-Soprano": ["no bass","no baritone"],
-    "Soprano":       ["no bass","no baritone","no tenor"],
-  };
-  if (vp.type && blMap[vp.type]) blMap[vp.type].forEach(b => parts.push("[" + b + "]"));
   return parts.join("");
 }
 
 function copyVocalistCmdBlock() {
-  const block = buildVocalistCmdBlock(S.vocalistDraft || S.vocalistProfile);
-  if (block) navigator.clipboard.writeText(block).catch(() => {});
+  const block = buildVocalistCmdBlock(S.vocalistDraft) || buildVocalistCmdBlock(S.vocalistProfile);
+  if (block) { _clipFallback(block); }
 }
+
+
+// ═══════════════════════════════════════════════════════════════
+// i18n
+// ═══════════════════════════════════════════════════════════════
+// WIZARD_STEPS_DEF and LANG are defined in lang.js
+
+function t(key) {
+  const parts = key.split(".");
+  let obj = LANG[S.lang] || LANG.en;
+  for (const p of parts) { obj = obj && obj[p]; }
+  if (obj !== undefined && obj !== null) return obj;
+  obj = LANG.en;
+  for (const p of parts) { obj = obj && obj[p]; }
+  return (obj !== undefined && obj !== null) ? obj : key;
+}
+
+// kbDesc(key) — get description for a genre id or tag string in current language
+function kbDesc(key) {
+  const cur = (KB_TEXT[S.lang] || KB_TEXT.en);
+  const en  = KB_TEXT.en;
+  return cur.tags[key]   || cur.genres[key]   ||
+         en.tags[key]    || en.genres[key]     || "";
+}
+// Alias used by qualityHTML / metaTagsHTML
+function getTagDesc(tagStr) { return kbDesc(tagStr); }
+
+// prodTip(str) -- short tooltip for a freeform production style chip
+function prodTip(p) {
+  const PROD_HINTS = {
+    "sidechain":   "Pumping compression synced to the kick drum",
+    "reverb":      "Spacious room or hall reverb across the mix",
+    "delay":       "Echo repeats that add rhythmic depth",
+    "compression": "Dynamic range control for punch and cohesion",
+    "distortion":  "Harmonic saturation or clipping for edge",
+    "lo-fi":       "Vintage imperfections: crackle, tape hiss, roll-off",
+    "lofi":        "Vintage imperfections: crackle, tape hiss, roll-off",
+    "analog":      "Warm, organic tape or tube character",
+    "warm":        "Soft high-frequency roll-off with low-mid warmth",
+    "dark":        "Emphasis on low and low-mid frequencies",
+    "bright":      "High-frequency presence and airiness",
+    "wide":        "Stereo image expanded for immersive listening",
+    "stereo":      "Full stereo field with panning dimension",
+    "punchy":      "Strong attack transients with tight release",
+    "808":         "Sub-bass 808 kick processing",
+    "sub":         "Deep sub-bass frequencies below 80 Hz",
+    "bass":        "Emphasized low-end presence",
+    "groove":      "Rhythmic pocket with swing or syncopation",
+    "danceable":   "Rhythmic drive optimized for danceability",
+    "layered":     "Multiple stacked elements for harmonic depth",
+    "glitch":      "Rhythmic stutters and digital artifacts",
+    "chop":        "Sliced and rearranged sample fragments",
+    "minimal":     "Sparse arrangement, few elements, maximum space",
+    "lush":        "Dense, rich arrangement with many harmonic layers",
+    "cinematic":   "Wide dynamic range with orchestral or dramatic feel",
+    "live":        "Organic, human-performed sound rather than programmed",
+    "vintage":     "Period-accurate production characteristics",
+    "tropical":    "Warm, sun-drenched textures with island feel",
+    "intimate":    "Close, quiet, personal: low reverb and volume",
+    "saturated":   "Soft clipping or tube warmth from saturation",
+    "filtered":    "Frequency-shaped with EQ cuts or sweeps",
+    "meringue":    "Upbeat Caribbean rhythm with brass and percussion",
+    "kompa":       "Haitian groove with lush brass and smooth guitar",
+    "epic":        "Climactic build with large dynamic range",
+  };
+  const lower = p.toLowerCase();
+  for (const [key, hint] of Object.entries(PROD_HINTS)) {
+    if (lower.includes(key)) return hint;
+  }
+  return "";
+}
+
+// chipHint(tag) — per-language tooltip from CHIP_HINTS
+function chipHint(tag) {
+  if (!tag) return '';
+  const h = (typeof CHIP_HINTS !== 'undefined' && (CHIP_HINTS[S.lang] || CHIP_HINTS.en)) || {};
+  return h[tag] || '';
+}
+
+function setLang(l) {
+  if (!LANG[l]) return;
+  S.lang = l;
+  localStorage.setItem("sunoLang", l);
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// WIZARD
+// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// WIZARD ENGINE
+// ═══════════════════════════════════════════════════════════════
+function wizardNoVocal() {
+  return allTags().some(tg => tg === "[No Vocals]" || tg === "[Instrumental]");
+}
+
+function wizardSteps() {
+  const noVocal = wizardNoVocal();
+  return WIZARD_STEPS_DEF.filter(s => !(s.id === "vocals" && noVocal));
+}
+
+function wizardTotalSteps() { return wizardSteps().length; }
+
+function nextStep() {
+  const total = wizardTotalSteps();
+  if (S.step < total) { S.step++; render(); scrollBuilderTop(); }
+}
+function prevStep() {
+  if (S.step > 1) { S.step--; render(); scrollBuilderTop(); }
+}
+function goToStep(n) {
+  const total = wizardTotalSteps();
+  if (n >= 1 && n <= total && (n <= S.step || S.genre)) {
+    S.step = n; render(); scrollBuilderTop();
+  }
+}
+function scrollBuilderTop() {
+  const el = document.getElementById("builder-col");
+  if (el) el.scrollTop = 0;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function wizardStepContent(stepDef) {
+  if (!S.genre && stepDef.id !== "genre") return "";
+  switch (stepDef.id) {
+    case "genre":       return genrePickerHTML();
+    case "mood":        return moodHTML() + tempoHTML();
+    case "instruments": return instrumentsHTML();
+    case "tags":        return metaTagsHTML() + metaMoodHTML() + artistRefHTML() + excludesHTML() + moreOptsHTML() + customStyleHTML();
+    case "vocals":      return lyricsBuilderHTML();
+    case "production":  return productionHTML() + metaProductionHTML() + qualityHTML();
+    default: return "";
+  }
+}
+
+function wizardHTML() {
+  const steps = wizardSteps();
+  const total = steps.length;
+  const stepIdx = Math.max(0, Math.min((S.step || 1) - 1, total - 1));
+  const step = stepIdx + 1;
+  const stepDef = steps[stepIdx];
+  const isFirst = step === 1;
+  const isLast  = step === total;
+  const canNext = step === 1 ? !!S.genre : true;
+  const sc = stepDef.color;
+
+  // ── Progress rail ──
+  const rail = steps.map((s, i) => {
+    const n = i + 1;
+    const done   = n < step;
+    const active = n === step;
+    const cls    = done ? "done" : active ? "active" : "pending";
+    const icon   = done ? "✓" : s.icon;
+    const canGo  = n < step || (n > step && S.genre);
+    return `
+      ${i > 0 ? `<div class="wiz-line${done || active ? " lit" : ""}"></div>` : ""}
+      <button class="wiz-pill ${cls}" onclick="goToStep(${n})"
+        style="--sc:${s.color}" ${!canGo && n !== step ? "disabled" : ""}>
+        <div class="wiz-pill-ring">${icon}</div>
+        <div class="wiz-pill-lbl">${t("steps." + s.id)}</div>
+      </button>`;
+  }).join("");
+
+  return `
+    <div class="wizard-wrap" style="--sc:${sc}">
+      <div class="wiz-track">
+        <div class="wiz-rail">${rail}</div>
+      </div>
+      <div class="wiz-hdr">
+        <div class="wiz-hdr-icon">${stepDef.icon}</div>
+        <div class="wiz-hdr-text">
+          <div class="wiz-hdr-num">${t("steps." + stepDef.id)} &middot; ${step} ${t("stepOf")} ${total}</div>
+          <h2 class="wiz-hdr-title">${t("section." + stepDef.id + ".title") || t("steps." + stepDef.id)}</h2>
+          <p class="wiz-hdr-hint">${t("section." + stepDef.id + ".hint") || ""}</p>
+        </div>
+      </div>
+      <div class="wiz-body">
+        ${wizardStepContent(stepDef)}
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-btn wiz-btn-restart" onclick="if(confirm(t('restartBtn')+'?'))clearGenre()" title="Restart">&#8635;</button>
+        <button class="wiz-btn wiz-btn-save" onclick="quickSavePreset()" title="Save preset">&#128190;</button>
+        ${isFirst
+          ? `<div></div>`
+          : `<button class="wiz-btn wiz-btn-back" onclick="prevStep()">${t("back")}</button>`}
+        <div class="wiz-step-dots">
+          ${steps.map((_,i) => `<span class="wiz-sdot${i+1===step?" a":i+1<step?" d":""}"></span>`).join("")}
+        </div>
+        ${isLast
+          ? `<button class="wiz-btn wiz-btn-next" onclick="nextStep()">${t("finish")}</button>`
+          : `<button class="wiz-btn wiz-btn-next" onclick="nextStep()" ${!canNext?`disabled title="${t("genreRequired")}"`:""} >${t("next")}</button>`}
+      </div>
+    </div>
+  `;
+}
+
 
 // INIT
 // =============================================================
 const _savedTheme = localStorage.getItem("sunoTheme");
 if (_savedTheme && THEMES[_savedTheme]) S.theme = _savedTheme;
+const _savedLang = localStorage.getItem("sunoLang");
+if (_savedLang && LANG[_savedLang]) S.lang = _savedLang;
 applyTheme(S.theme);
 render();
+
+// version label
+const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
