@@ -1665,6 +1665,8 @@ function setLang(l) {
   if (!LANG[l]) return;
   S.lang = l;
   localStorage.setItem("sunoLang", l);
+  const sub = document.getElementById("app-subtitle");
+  if (sub) sub.textContent = t("subtitle");
   render();
 }
 
@@ -1785,6 +1787,8 @@ const _savedTheme = localStorage.getItem("sunoTheme");
 if (_savedTheme && THEMES[_savedTheme]) S.theme = _savedTheme;
 const _savedLang = localStorage.getItem("sunoLang");
 if (_savedLang && LANG[_savedLang]) S.lang = _savedLang;
+const _sub = document.getElementById("app-subtitle");
+if (_sub) _sub.textContent = t("subtitle");
 applyTheme(S.theme);
 render();
 

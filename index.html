@@ -588,12 +588,12 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
     <div class="header-logo">🎵</div>
     <div class="header-text">
       <h1>Rick Mizik</h1>
-      <p>RickAI Engine — Suno v5 precision prompt builder</p>
+      <p id="app-subtitle">RickAI Engine — Générateur de prompts précis pour Suno v5</p>
     </div>
     <div class="header-actions">
       <div class="lang-toggle">
-        <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
-        <button class="lang-btn" id="lang-fr" onclick="setLang('fr')">FR</button>
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')" title="English — click to set as default">EN</button>
+        <button class="lang-btn" id="lang-fr" onclick="setLang('fr')" title="Français — cliquer pour définir par défaut">FR</button>
       </div>
       <div class="theme-row">
         <div id="theme-swatches" style="display:flex;gap:4px"></div>
