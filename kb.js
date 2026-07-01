@@ -460,4 +460,5 @@ const KB = {
     delivery: ["[Whispered]","[Soft]","[Gentle]","[Powerful]","[Belted]","[Shouted]","[Screamed]","[Intense]","[Smooth]","[Raspy]","[Breathy]","[Airy]","[Nasal]","[Soulful]","[Operatic]","[Falsetto]","[Head Voice]","[Chest Voice]","[Melodic]","[Tender]","[Aggressive]","[Harmonies]","[Ad-libs]","[Vocal Run]","[Melisma]","[Vibrato]","[Staccato]","[Legato]","[Choir]","[Chant]","[Growling]","[Rapped]","[Fast Rap]","[Slow Flow]","[Melodic Rap]","[Trap Flow]","[Double Time]","[Spoken]","[female lead]","[male lead]","[female narrator]","[male narrator]","[rap verse]","[gospel choir]","[diva solo]","[primal scream]","[intimate MC]"]
   },
 
-  commonExcludes:["vocals","drums","piano","guitar","bass","strings","brass","hi-hat","reverb","distortion",
+  commonExcludes:["vocals","drums","piano","guitar","bass","strings","brass","hi-hat","reverb","distortion","synth"]
+}
