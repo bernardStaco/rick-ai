@@ -462,3 +462,173 @@ const KB = {
 
   commonExcludes:["vocals","drums","piano","guitar","bass","strings","brass","hi-hat","reverb","distortion","synth"]
 }
+
+// ─── VALIDATION RULES ─────────────────────────────────────────
+// Each rule: { id, category, severity ("error"|"warning"|"tip"),
+//              en:{msg,suggestion}, fr:{msg,suggestion},
+//              check(S) → true if triggered }
+// Extend freely — rules are independent and additive.
+const VALIDATION_RULES = [
+
+  // ── MOOD CONFLICTS ────────────────────────────────────────
+  {
+    id:"mood_contradiction", category:"mood", severity:"warning",
+    en:{ msg:"Contradictory moods detected",
+         suggestion:"Pick one emotional direction for a cleaner, stronger result." },
+    fr:{ msg:"Ambiances contradictoires détectées",
+         suggestion:"Choisissez une direction émotionnelle claire pour un meilleur résultat." },
+    check(S) {
+      const PAIRS = [
+        [["Happy","Joyful","Uplifting","Euphoric","Playful"],
+         ["Melancholic","Sad","Dark","Gloomy","Sombre","Mournful"]],
+        [["Aggressive","Intense","Angry","Fierce"],
+         ["Peaceful","Calm","Serene","Gentle","Tranquil"]],
+        [["Energetic","Upbeat","Frantic"],
+         ["Lazy","Slow","Dreamy","Ethereal"]],
+        [["Romantic","Sensual"],
+         ["Angry","Aggressive","Hostile"]],
+      ];
+      const m = S.moods || [];
+      for (const [a,b] of PAIRS) {
+        const ha = m.find(x => a.includes(x));
+        const hb = m.find(x => b.includes(x));
+        if (ha && hb) { this._detail = `"${ha}" + "${hb}"`; return true; }
+      }
+      return false;
+    }
+  },
+
+  {
+    id:"mood_too_many", category:"mood", severity:"tip",
+    en:{ msg:"Many moods selected",
+         suggestion:"Suno focuses best on 2–3 moods. More can dilute the emotional impact." },
+    fr:{ msg:"Trop d'ambiances sélectionnées",
+         suggestion:"Suno est plus précis avec 2–3 ambiances. En ajouter plus dilue l'impact émotionnel." },
+    check(S) { return (S.moods||[]).length > 4; }
+  },
+
+  // ── GENRE / VOCAL REGISTER CONFLICTS ─────────────────────
+  {
+    id:"heavy_genre_soft_vocal", category:"vocals", severity:"warning",
+    en:{ msg:"Heavy genre with very soft vocal register",
+         suggestion:"Soprano or Alto may feel out of place in Metal. Consider Tenor or Baritone." },
+    fr:{ msg:"Genre heavy avec registre vocal très doux",
+         suggestion:"Soprano ou Alto peut sembler déplacé en Metal. Envisagez Ténor ou Baryton." },
+    check(S) {
+      const heavyGenres = ["Metal","Heavy Metal","Death Metal","Black Metal","Metalcore","Deathcore","Thrash Metal","Doom Metal"];
+      const softRegs = ["Soprano","Mezzo-Soprano","Alto"];
+      const reg = S.vocalistProfile?.register || "";
+      return heavyGenres.some(g => (S.genre||"").includes(g)) && softRegs.includes(reg);
+    }
+  },
+
+  {
+    id:"soprano_growl", category:"vocals", severity:"error",
+    en:{ msg:"Soprano register + Growl/Scream delivery",
+         suggestion:"Soprano and Growl/Scream are physiologically opposite. Choose one or the other." },
+    fr:{ msg:"Registre Soprano + livraison Growl/Scream",
+         suggestion:"Soprano et Growl/Scream sont opposés physiologiquement. Choisissez l'un ou l'autre." },
+    check(S) {
+      const reg = S.vocalistProfile?.register || "";
+      const del = S.vocalistProfile?.delivery || [];
+      const hard = ["[Growling]","[Screamed]"];
+      return reg === "Soprano" && del.some(d => hard.includes(d));
+    }
+  },
+
+  {
+    id:"bass_high_quality", category:"vocals", severity:"warning",
+    en:{ msg:"Bass register with high-pitched quality",
+         suggestion:'A Bass register paired with “High-pitched” sounds contradictory. Pick a consistent range.' },
+    fr:{ msg:"Registre Basse avec qualité aiguë",
+         suggestion:'Un registre Basse avec "High-pitched" est contradictoire. Choisissez une plage cohérente.' },
+    check(S) {
+      const reg = S.vocalistProfile?.register || "";
+      const q   = S.vocalistProfile?.qualities || [];
+      return reg === "Bass" && q.some(x => x.toLowerCase().includes("high"));
+    }
+  },
+
+  {
+    id:"classical_rap", category:"vocals", severity:"warning",
+    en:{ msg:"Classical/Opera genre with Rap delivery",
+         suggestion:"Rap flow in a classical context is unusual. This may produce unexpected results." },
+    fr:{ msg:"Genre Classique/Opéra avec livraison Rap",
+         suggestion:"Le Rap dans un contexte classique est inhabituel. Cela peut produire des résultats inattendus." },
+    check(S) {
+      const g = (S.genre||"").toLowerCase();
+      const del = S.vocalistProfile?.delivery || [];
+      const rapTags = ["[Rapped]","[Fast Rap]","[Slow Flow]","[Melodic Rap]","[Trap Flow]","[Double Time]"];
+      return (g.includes("classical") || g.includes("opera")) && del.some(d => rapTags.includes(d));
+    }
+  },
+
+  // ── PRODUCTION CONFLICTS ──────────────────────────────────
+  {
+    id:"lofi_hifi", category:"production", severity:"warning",
+    en:{ msg:"Lo-fi aesthetic + Hi-fi production tags",
+         suggestion:'Lo-fi and "Crystal Clear" / "High Fidelity" work against each other.' },
+    fr:{ msg:"Esthétique Lo-fi + tags de production Hi-fi",
+         suggestion:'"Lo-fi" et "Crystal Clear" / "High Fidelity" s\'opposent.' },
+    check(S) {
+      const p = (S.production||[]).map(x=>x.toLowerCase());
+      const hasLofi = p.some(x => x.includes("lo-fi") || x.includes("lofi"));
+      const hasHifi = p.some(x => x.includes("crystal clear") || x.includes("high fidelity") || x.includes("hi-fi"));
+      return hasLofi && hasHifi;
+    }
+  },
+
+  {
+    id:"acoustic_heavy_synth", category:"production", severity:"tip",
+    en:{ msg:"Acoustic instruments + Heavy electronic production",
+         suggestion:"Blending acoustic instruments with heavy synth/electronic production can muddy the sound." },
+    fr:{ msg:"Instruments acoustiques + production électronique lourde",
+         suggestion:"Mélanger des instruments acoustiques avec une production électronique lourde peut brouiller le son." },
+    check(S) {
+      const inst = (S.instruments||[]).map(x=>x.toLowerCase());
+      const prod = (S.production||[]).map(x=>x.toLowerCase());
+      const acoustic = inst.some(x => x.includes("acoustic") || x.includes("guitar") || x.includes("piano") || x.includes("violin"));
+      const heavy    = prod.some(x => x.includes("electronic") || x.includes("heavy synth") || x.includes("edm") || x.includes("dubstep"));
+      return acoustic && heavy;
+    }
+  },
+
+  // ── EXCLUDE OVERLAPS ──────────────────────────────────────
+  {
+    id:"exclude_overlap", category:"exclude", severity:"error",
+    en:{ msg:"Excluded element also appears in selected tags",
+         suggestion:"Remove it from Excludes or de-select it from your prompt — having both cancels them out." },
+    fr:{ msg:"Un élément exclu apparaît aussi dans les tags sélectionnés",
+         suggestion:"Retirez-le des Exclusions ou désélectionnez-le — avoir les deux s'annule mutuellement." },
+    check(S) {
+      const excl = [...(S.excludes||[]), ...(S.customExcludes||[]).filter(Boolean)].map(x=>x.toLowerCase());
+      const all  = [...(S.instruments||[]), ...(S.production||[]), ...(S.moods||[])].map(x=>x.toLowerCase());
+      return excl.some(e => all.some(a => a.includes(e) || e.includes(a)));
+    }
+  },
+
+  // ── STRUCTURE TIPS ────────────────────────────────────────
+  {
+    id:"no_genre", category:"structure", severity:"tip",
+    en:{ msg:"No genre selected",
+         suggestion:"A genre anchors the whole prompt. Go back to Step 1 and choose one." },
+    fr:{ msg:"Aucun genre sélectionné",
+         suggestion:"Le genre ancre tout le prompt. Revenez à l'Étape 1 pour en choisir un." },
+    check(S) { return !S.genre; }
+  },
+
+  {
+    id:"style_too_long", category:"structure", severity:"tip",
+    en:{ msg:"Style field may be too long",
+         suggestion:"Suno v5 works best under ~120 characters. Consider trimming to the most essential descriptors." },
+    fr:{ msg:"Champ Style peut être trop long",
+         suggestion:"Suno v5 fonctionne mieux sous ~120 caractères. Réduisez aux descripteurs essentiels." },
+    check(S) {
+      // rough estimate of style length
+      const parts = [S.genre, S.subgenre||S.customSubgenre,
+        ...(S.moods||[]), ...(S.instruments||[]), ...(S.production||[])].filter(Boolean);
+      return parts.join(", ").length > 120;
+    }
+  },
+
+];

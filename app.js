@@ -1,4 +1,4 @@
-// Rick Mizik — RickAI Engine
+// Rick AI
 const APP_VERSION = "1.0.0";
 
 // KB loaded from kb.js
@@ -1586,6 +1586,206 @@ function copyVocalistCmdBlock() {
 
 // ═══════════════════════════════════════════════════════════════
 // i18n
+
+
+// ── VALIDATION ────────────────────────────────────────────────
+function validatePrompt() {
+  const results = [];
+  for (const rule of VALIDATION_RULES) {
+    try {
+      if (rule.check(S)) {
+        const loc = rule[S.lang] || rule.en;
+        results.push({
+          id:         rule.id,
+          category:   rule.category,
+          severity:   rule.severity,
+          msg:        loc.msg + (rule._detail ? ` (${rule._detail})` : ""),
+          suggestion: loc.suggestion,
+        });
+        rule._detail = null; // reset
+      }
+    } catch(e) { /* rule error — skip */ }
+  }
+  const deductions = results.reduce((acc, r) =>
+    acc + (r.severity === "error" ? 30 : r.severity === "warning" ? 15 : 5), 0);
+  const score = Math.max(0, 100 - deductions);
+  return { results, score };
+}
+
+function scoreColor(score) {
+  if (score >= 80) return "#22c55e";
+  if (score >= 55) return "#f59e0b";
+  return "#ef4444";
+}
+function scoreLabel(score) {
+  const v = t("validate");
+  if (score >= 80) return v.perfect;
+  if (score >= 55) return v.good;
+  if (score >= 30) return v.fair;
+  return v.weak;
+}
+
+function validateHTML() {
+  const { results, score } = validatePrompt();
+  const v      = t("validate");
+  const errors = results.filter(r => r.severity === "error");
+  const warns  = results.filter(r => r.severity === "warning");
+  const tips   = results.filter(r => r.severity === "tip");
+  const col    = scoreColor(score);
+
+  const issueBlock = (label, icon, items, cls) => items.length === 0 ? "" : `
+    <div class="val-group">
+      <div class="val-group-hdr ${cls}">${icon} ${label} (${items.length})</div>
+      ${items.map(r => `
+        <div class="val-issue">
+          <div class="val-issue-msg">${r.msg}</div>
+          <div class="val-issue-tip">💡 ${r.suggestion}</div>
+        </div>`).join("")}
+    </div>`;
+
+  // Exclude summary
+  const excl = [...S.excludes, ...S.customExcludes.filter(Boolean)];
+  const exclHTML = excl.length
+    ? excl.map(e => `<span class="chip chip-sm chip-exclude">no: ${esc(e)}</span>`).join("")
+    : `<span class="val-empty">${v.excludeEmpty}</span>`;
+
+  return `
+    <div class="val-score-row">
+      <div class="val-score-ring" style="--sc:${col}">
+        <svg viewBox="0 0 64 64" class="val-ring-svg">
+          <circle cx="32" cy="32" r="26" class="val-ring-bg"/>
+          <circle cx="32" cy="32" r="26" class="val-ring-fill"
+            style="stroke:${col};stroke-dasharray:${Math.round(score*1.634)} 163.4"/>
+        </svg>
+        <div class="val-score-num" style="color:${col}">${score}</div>
+      </div>
+      <div class="val-score-info">
+        <div class="val-score-label">${v.score}</div>
+        <div class="val-score-tag" style="background:${col}">${scoreLabel(score)}</div>
+        ${results.length === 0
+          ? `<div class="val-ok">✓ ${v.noIssues}</div>`
+          : `<div class="val-summary">
+              ${errors.length  ? `<span class="val-badge err">${errors.length} ${v.errors}</span>` : ""}
+              ${warns.length   ? `<span class="val-badge wrn">${warns.length} ${v.warnings}</span>` : ""}
+              ${tips.length    ? `<span class="val-badge tip">${tips.length} ${v.tips}</span>` : ""}
+             </div>`}
+      </div>
+    </div>
+
+    <div class="val-issues">
+      ${issueBlock(v.errors,   "🔴", errors, "err")}
+      ${issueBlock(v.warnings, "🟡", warns,  "wrn")}
+      ${issueBlock(v.tips,     "💡", tips,   "tip")}
+      ${results.length === 0
+        ? `<div class="val-clear">🎉 ${v.noIssues}</div>`
+        : ""}
+    </div>
+
+    <div class="val-exclude-box">
+      <div class="val-exclude-hdr">🚫 ${v.excludeSection}</div>
+      <div class="val-exclude-chips">${exclHTML}</div>
+      <div class="val-exclude-add">
+        ${KB.commonExcludes.map(ex=>`<button
+          class="chip chip-sm${S.excludes.includes(ex)?" active chip-exclude":""}"
+          onclick="toggleEx('${ex}');render()">${ex}</button>`).join("")}
+      </div>
+      ${S.customExcludes.map((ex,i)=>`
+        <div class="val-excl-custom">
+          <input class="text-input" value="${esc(ex)}"
+            oninput="S.customExcludes[${i}]=this.value;patchPreviews()"
+            placeholder="Custom exclude...">
+          <button class="btn-del" onclick="S.customExcludes.splice(${i},1);render()">✕</button>
+        </div>`).join("")}
+      <button class="btn-add" onclick="S.customExcludes.push('');render()">+ Add exclude</button>
+    </div>
+
+    <div class="val-generate">
+      <button class="btn btn-primary val-gen-btn" onclick="copyFinal('style')">
+        📋 ${v.generateBtn}
+      </button>
+    </div>
+  `;
+}
+
+// ── INTRO / ONBOARDING ───────────────────────────────────────
+function introHTML() {
+  const i = t("intro");
+  const steps = i.steps.map((s, idx) => `
+    <div class="intro-step">
+      <div class="intro-step-icon">${s.icon}</div>
+      <div class="intro-step-num">${idx + 1}</div>
+      <div class="intro-step-label">${s.label}</div>
+      <div class="intro-step-desc">${s.desc}</div>
+      ${s.ex?'<div class="intro-step-ex">'+s.ex+'</div>':''}
+    </div>`).join('<div class="intro-step-arrow">→</div>');
+
+  return `
+  <div class="intro-overlay" id="intro-overlay">
+    <div class="intro-card">
+      <div class="intro-hero">
+        <div class="intro-logo">🎵</div>
+        <h2 class="intro-title">${i.title}</h2>
+        <p class="intro-tagline">${i.tagline}</p>
+      </div>
+
+      <div class="intro-body-text">${i.body}</div>
+
+      <div class="intro-steps-wrap">
+        <div class="intro-steps">${steps}</div>
+      </div>
+
+      <div class="intro-result">
+        <div class="intro-result-title">${i.whatYouGet}</div>
+        <div class="intro-result-items">
+          <div class="intro-result-item">
+            <span class="intro-result-icon">📋</span>
+            <div>
+              <div class="intro-result-label">${i.styleLabel}</div>
+              <div class="intro-result-desc">${i.styleDesc}</div>
+            </div>
+          </div>
+          <div class="intro-result-item">
+            <span class="intro-result-icon">📝</span>
+            <div>
+              <div class="intro-result-label">${i.lyricsLabel}</div>
+              <div class="intro-result-desc">${i.lyricsDesc}</div>
+            </div>
+          </div>
+          <div class="intro-result-item">
+            <span class="intro-result-icon">🚫</span>
+            <div>
+              <div class="intro-result-label">${i.excludeLabel}</div>
+              <div class="intro-result-desc">${i.excludeDesc}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-actions">
+        <button class="intro-skip" onclick="closeIntro(false)">${i.skip}</button>
+        <button class="intro-start" onclick="closeIntro(true)">${i.start}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function showIntro() {
+  const existing = document.getElementById('intro-overlay');
+  if (existing) existing.remove();
+  document.body.insertAdjacentHTML('afterbegin', introHTML());
+  document.body.style.overflow = 'hidden';
+}
+
+function closeIntro(markSeen) {
+  if (markSeen) localStorage.setItem('rickai_intro_seen', '1');
+  const el = document.getElementById('intro-overlay');
+  if (el) {
+    el.style.opacity = '0';
+    el.style.transform = 'scale(.97)';
+    setTimeout(() => { el.remove(); document.body.style.overflow = ''; }, 280);
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
 // WIZARD_STEPS_DEF and LANG are defined in lang.js
 
@@ -1715,6 +1915,7 @@ function wizardStepContent(stepDef) {
     case "tags":        return metaTagsHTML() + metaMoodHTML() + artistRefHTML() + excludesHTML() + moreOptsHTML() + customStyleHTML();
     case "vocals":      return lyricsBuilderHTML();
     case "production":  return productionHTML() + metaProductionHTML() + qualityHTML();
+    case "validate":    return validateHTML();
     default: return "";
   }
 }
@@ -1794,3 +1995,4 @@ render();
 
 // version label
 const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
+if (!localStorage.getItem('rickai_intro_seen')) showIntro();
