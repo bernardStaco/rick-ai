@@ -1991,7 +1991,7 @@ function wizardHTML() {
       <div class="wiz-footer">
         <button class="wiz-btn wiz-btn-restart" onclick="if(confirm(t('restartBtn')+'?'))clearGenre()" title="Restart">&#8635;</button>
         <button class="wiz-btn wiz-btn-save" onclick="quickSavePreset()" title="Save preset">&#128190;</button>
-        <button class="wiz-btn wiz-btn-validate" onclick="showValidate()" title="Validate prompt">&#9989;</button>
+        <button class="wiz-btn wiz-btn-validate" onclick="showValidate()">&#9989; Validate</button>
         ${isFirst
           ? `<div></div>`
           : `<button class="wiz-btn wiz-btn-back" onclick="prevStep()">${t("back")}</button>`}
