@@ -468,6 +468,33 @@ const KB = {
 //              en:{msg,suggestion}, fr:{msg,suggestion},
 //              check(S) → true if triggered }
 // Extend freely — rules are independent and additive.
+
+// ─── EXCLUDE ALIASES ──────────────────────────────────────────
+// Maps each commonExclude keyword to all forms it might appear
+// as in generated instrument / production tags.
+const EXCLUDE_ALIASES = {
+  drums:       ["drum","drums","drum kit","drum machine","808 drums","live drums","brushed drums",
+                "soft drums","punchy drums","boom bap drums","double kick drums","digital percussion"],
+  guitar:      ["guitar","guitars","electric guitar","acoustic guitar","bass guitar","jangly guitar",
+                "distorted guitar","rhythm guitar","lead guitar","clean guitar","palm-muted"],
+  piano:       ["piano","grand piano","upright piano","rhodes piano","wurlitzer","electric piano"],
+  bass:        ["bass","bass guitar","808 bass","sub bass","upright bass","slap bass","bass line"],
+  strings:     ["strings","string section","violin","viola","cello","string quartet","orchestral strings"],
+  brass:       ["brass","trumpet","trombone","brass section","brass horns","horn","horns","flugelhorn"],
+  synth:       ["synth","synthesizer","synths","synthesizers","synth pads","synth arpeggios",
+                "synth stab","digital synth","analog synth"],
+  vocals:      ["vocals","vocal","voice","singer","choir","harmonies","vocal harmonies","backing vocals"],
+  reverb:      ["reverb","heavy reverb","deep reverb","room reverb","plate reverb","spring reverb"],
+  distortion:  ["distortion","distorted","fuzz","overdrive","heavy saturation"],
+  "hi-hat":    ["hi-hat","hihat","hi hat","open hi-hat","closed hi-hat","rapid hi-hat","hi-hats"],
+};
+
+function excludeMatches(excludeKey, candidate) {
+  const aliases = EXCLUDE_ALIASES[excludeKey.toLowerCase()] || [excludeKey.toLowerCase()];
+  const c = candidate.toLowerCase();
+  return aliases.some(a => c.includes(a) || a.includes(c));
+}
+
 const VALIDATION_RULES = [
 
   // ── MOOD CONFLICTS ────────────────────────────────────────
@@ -596,14 +623,26 @@ const VALIDATION_RULES = [
   // ── EXCLUDE OVERLAPS ──────────────────────────────────────
   {
     id:"exclude_overlap", category:"exclude", severity:"error",
-    en:{ msg:"Excluded element also appears in selected tags",
-         suggestion:"Remove it from Excludes or de-select it from your prompt — having both cancels them out." },
-    fr:{ msg:"Un élément exclu apparaît aussi dans les tags sélectionnés",
-         suggestion:"Retirez-le des Exclusions ou désélectionnez-le — avoir les deux s'annule mutuellement." },
+    en:{ msg:"Conflict: excluded item also in selected tags",
+         suggestion:"Remove it from Excludes or de-select it — having both cancels them out." },
+    fr:{ msg:"Conflit : un élément exclu est aussi sélectionné",
+         suggestion:"Retirez-le des Exclusions ou désélectionnez-le — avoir les deux s'annule." },
     check(S) {
-      const excl = [...(S.excludes||[]), ...(S.customExcludes||[]).filter(Boolean)].map(x=>x.toLowerCase());
-      const all  = [...(S.instruments||[]), ...(S.production||[]), ...(S.moods||[])].map(x=>x.toLowerCase());
-      return excl.some(e => all.some(a => a.includes(e) || e.includes(a)));
+      const excl = [...(S.excludes||[]), ...(S.customExcludes||[]).filter(Boolean)];
+      const all  = [
+        ...(S.instruments||[]), ...(S.customInstruments||[]).filter(Boolean),
+        ...(S.production||[]),  ...(S.customProduction||[]).filter(Boolean),
+        ...(S.qualityTags||[]), ...(S.vocalTags||[]),
+      ];
+      for (const e of excl) {
+        for (const a of all) {
+          if (excludeMatches(e, a)) {
+            this._detail = `"${e}" conflicts with "${a}"`;
+            return true;
+          }
+        }
+      }
+      return false;
     }
   },
 

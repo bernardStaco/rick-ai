@@ -1687,24 +1687,49 @@ function validateHTML() {
       <div class="val-exclude-add">
         ${KB.commonExcludes.map(ex=>`<button
           class="chip chip-sm${S.excludes.includes(ex)?" active chip-exclude":""}"
-          onclick="toggleEx('${ex}');render()">${ex}</button>`).join("")}
+          onclick="toggleEx('${ex}');render();showValidate()">${ex}</button>`).join("")}
       </div>
       ${S.customExcludes.map((ex,i)=>`
         <div class="val-excl-custom">
           <input class="text-input" value="${esc(ex)}"
             oninput="S.customExcludes[${i}]=this.value;patchPreviews()"
             placeholder="Custom exclude...">
-          <button class="btn-del" onclick="S.customExcludes.splice(${i},1);render()">✕</button>
+          <button class="btn-del" onclick="S.customExcludes.splice(${i},1);render();showValidate()">✕</button>
         </div>`).join("")}
-      <button class="btn-add" onclick="S.customExcludes.push('');render()">+ Add exclude</button>
-    </div>
-
-    <div class="val-generate">
-      <button class="btn btn-primary val-gen-btn" onclick="copyFinal('style')">
-        📋 ${v.generateBtn}
-      </button>
+      <button class="btn-add" onclick="S.customExcludes.push('');render();showValidate()">+ Add exclude</button>
     </div>
   `;
+}
+
+
+function showValidate() {
+  // Re-render if already open (picks up state changes)
+  const existing = document.getElementById('validate-modal');
+  if (existing) { existing.remove(); }
+  const v = t("validate");
+  document.body.insertAdjacentHTML('afterbegin', `
+    <div class="val-modal" id="validate-modal">
+      <div class="val-modal-card">
+        <div class="val-modal-hdr">
+          <span>✅ ${v.title}</span>
+          <button class="val-modal-close" onclick="closeValidate()">✕</button>
+        </div>
+        <div class="val-modal-body">${validateHTML()}</div>
+        <div class="val-modal-foot">
+          <button class="btn" onclick="closeValidate()">${v.closeBtn}</button>
+          <button class="btn btn-primary" onclick="copyFinal('style');closeValidate()">📋 ${v.generateBtn}</button>
+        </div>
+      </div>
+    </div>`);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeValidate() {
+  const el = document.getElementById('validate-modal');
+  if (el) {
+    el.style.opacity = '0';
+    setTimeout(() => { el.remove(); document.body.style.overflow = ''; }, 200);
+  }
 }
 
 // ── INTRO / ONBOARDING ───────────────────────────────────────
@@ -1915,7 +1940,6 @@ function wizardStepContent(stepDef) {
     case "tags":        return metaTagsHTML() + metaMoodHTML() + artistRefHTML() + excludesHTML() + moreOptsHTML() + customStyleHTML();
     case "vocals":      return lyricsBuilderHTML();
     case "production":  return productionHTML() + metaProductionHTML() + qualityHTML();
-    case "validate":    return validateHTML();
     default: return "";
   }
 }
@@ -1967,6 +1991,7 @@ function wizardHTML() {
       <div class="wiz-footer">
         <button class="wiz-btn wiz-btn-restart" onclick="if(confirm(t('restartBtn')+'?'))clearGenre()" title="Restart">&#8635;</button>
         <button class="wiz-btn wiz-btn-save" onclick="quickSavePreset()" title="Save preset">&#128190;</button>
+        <button class="wiz-btn wiz-btn-validate" onclick="showValidate()" title="Validate prompt">&#9989;</button>
         ${isFirst
           ? `<div></div>`
           : `<button class="wiz-btn wiz-btn-back" onclick="prevStep()">${t("back")}</button>`}

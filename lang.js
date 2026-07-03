@@ -9,7 +9,6 @@ const WIZARD_STEPS_DEF = [
   { id:'tags',        icon:'🏷️',  color:'#22c55e' },
   { id:'vocals',      icon:'🎤', color:'#ec4899' },
   { id:'production',  icon:'🎚️',  color:'#f97316' },
-  { id:'validate',    icon:'✅', color:'#22c55e' },
 ];
 
 const LANG = {
@@ -92,6 +91,7 @@ const LANG = {
       excludeSection: "Excludes",
       excludeEmpty: "Nothing excluded",
       generateBtn: "Copy & Generate",
+      closeBtn: "Close",
     },
     section: {
       subgenre:  { title: "Sub-Genre", hint: "Refine the genre anchor for a more specific sound" },
@@ -190,6 +190,7 @@ const LANG = {
       excludeSection: "Exclusions",
       excludeEmpty: "Rien d'exclu",
       generateBtn: "Copier & Générer",
+      closeBtn: "Fermer",
     },
     section: {
 
