@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8b5cf6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Rick AI">
 <title>Rick AI</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzBkMGQxMiIvPgogIDxkZWZzPgogICAgPGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzhiNWNmNiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzYjgyZjYiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDwhLS0gbm90ZSBzdGVtIC0tPgogIDxyZWN0IHg9IjE5IiB5PSI3IiB3aWR0aD0iMi41IiBoZWlnaHQ9IjE0IiByeD0iMS4yIiBmaWxsPSJ1cmwoI2cpIi8+CiAgPCEtLSBub3RlIGZsYWcgLS0+CiAgPHBhdGggZD0iTTIxLjUgNyBRMjggOSAyNiAxNSBRMjMgMTIgMjEuNSAxM1oiIGZpbGw9InVybCgjZykiLz4KICA8IS0tIG5vdGUgaGVhZCAtLT4KICA8ZWxsaXBzZSBjeD0iMTYiIGN5PSIyMSIgcng9IjUiIHJ5PSIzLjUiIHRyYW5zZm9ybT0icm90YXRlKC0xNSAxNiAyMSkiIGZpbGw9InVybCgjZykiLz4KPC9zdmc+">
 <style>
@@ -825,6 +831,89 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
   box-shadow: 0 6px 20px rgba(139,92,246,.55);
 }
 
+
+/* ── GENRE FILTER TABS ── */
+.gft-tabs-row {
+  display: flex; gap: 6px; overflow-x: auto;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.gft-tabs-row::-webkit-scrollbar { display: none; }
+.gft-tab {
+  display: flex; align-items: center; gap: 5px;
+  flex-shrink: 0;
+  padding: 6px 12px; border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-dim); font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  white-space: nowrap;
+  transition: all .15s;
+}
+.gft-tab:hover { border-color: var(--l1); color: var(--text); }
+.gft-tab.active {
+  background: var(--l1); border-color: var(--l1);
+  color: #fff;
+}
+.gft-count {
+  font-size: 10px; font-weight: 800; opacity: .7;
+  background: rgba(255,255,255,.2);
+  padding: 1px 5px; border-radius: 8px;
+}
+.gft-tab.active .gft-count { background: rgba(255,255,255,.25); }
+
+/* ── COMPACT GENRE PICKER ── */
+.gpc-body { padding: 12px 14px; }
+.gpc-section { margin-bottom: 10px; }
+.gpc-section-label {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text-muted);
+  margin-bottom: 6px; padding-left: 2px;
+}
+.gpc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+@media (max-width: 480px) {
+  .gpc-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.gpc-wrap { position: relative; }
+.gpc-card {
+  width: 100%; display: flex; flex-direction: column;
+  align-items: center; gap: 5px;
+  padding: 12px 6px 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; cursor: pointer;
+  font-family: inherit; transition: all .15s;
+}
+.gpc-card:hover {
+  background: color-mix(in srgb, var(--l1) 10%, var(--surface));
+  border-color: var(--l1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139,92,246,.2);
+}
+.gpc-icon { font-size: 26px; line-height: 1; }
+.gpc-name {
+  font-size: 11px; font-weight: 700; color: var(--text);
+  text-align: center; line-height: 1.3;
+  word-break: break-word;
+}
+.gpc-fav {
+  position: absolute; top: 5px; right: 6px;
+  background: transparent; border: none;
+  font-size: 14px; cursor: pointer;
+  color: var(--text-muted); padding: 0; line-height: 1;
+  transition: color .15s;
+}
+.gpc-fav:hover, .gpc-fav.active { color: #f59e0b; }
+.gpc-empty {
+  padding: 24px; text-align: center;
+  color: var(--text-muted); font-size: 13px; font-style: italic;
+}
+
 /* ── APP FOOTER ── */
 .app-footer {
   text-align: center; padding: 14px 20px;
@@ -917,5 +1006,13 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 <script src="kb.js"></script>
 <script src="lang.js"></script>
 <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () =>
+        navigator.serviceWorker.register('./sw.js')
+          .catch(e => console.warn('SW:', e))
+      );
+    }
+  </script>
 </body>
 </html>

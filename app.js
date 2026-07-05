@@ -27,6 +27,7 @@ let S = {
   open: { subgenre:true, mood:true, tempo:true, instruments:true, production:true, quality:true, vocal:true, metaprod:false, metamood:false, artistref:false, exclude:true, moreopts:true, vocbuild:false, custom:false, lyrics:true },
   theme: "light",
   vocalistProfile: null,
+  genreGroup: null,
   step: 1,
   lang: "en"
 };
@@ -276,52 +277,84 @@ function genrePickerHTML() {
     `;
   }
 
-  // ── UNSELECTED STATE: full genre grid ──
-  const favIds = getFavs();
-  const groups = {};
+  // ── UNSELECTED STATE: tab-filtered compact grid ──
+  const favIds  = getFavs();
+  const groups  = {};
   KB.genres.forEach(g => { (groups[g.group] = groups[g.group] || []).push(g); });
-  const sortedGroups = Object.entries(groups)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([grp, gs]) => [grp, gs.slice().sort((a, b) => a.name.localeCompare(b.name))]);
+  const sortedGroupKeys = Object.keys(groups).sort();
 
-  const mkCard = (g) => {
+  const shortLabel = g => g
+    .replace("Country / Folk", "Country")
+    .replace("Latin / World", "Latin")
+    .replace("R&B / Soul", "R&B")
+    .replace("Cinematic", "Film");
+
+  const activeGrp = S.genreGroup;
+
+  // Tabs: All | ★ | each group
+  const tabDefs = [
+    { id: "",      label: "All",   count: KB.genres.length },
+    { id: "__fav", label: "★",     count: favIds.length    },
+    ...sortedGroupKeys.map(g => ({ id: g, label: shortLabel(g), count: groups[g].length }))
+  ];
+  const tabs = tabDefs.map(tab => {
+    const active = (tab.id === "" && !activeGrp) || (tab.id === activeGrp);
+    return `<button class="gft-tab${active?" active":""}"
+      onclick="setGenreFilter(this.dataset.g)" data-g="${esc(tab.id)}"
+      >${tab.label}<span class="gft-count">${tab.count}</span></button>`;
+  }).join("");
+
+  // Genre card
+  const mkCard = g => {
     const isFav = favIds.includes(g.id);
-    const starLabel = isFav ? "Remove from favorites" : "Add to favorites";
-    const starChar = isFav ? "★" : "☆";
-    return `<div class="genre-card-wrap">
-      <button class="genre-card" onclick="selectGenre('${g.id}')" title="${esc(kbDesc(g.id))}">
-        <div class="genre-icon">${g.icon}</div>
-        <div class="genre-name">${esc(g.name)}</div>
+    return `<div class="gpc-wrap">
+      <button class="gpc-card" onclick="selectGenre('${g.id}')">
+        <span class="gpc-icon">${g.icon}</span>
+        <span class="gpc-name">${esc(g.name)}</span>
       </button>
-      <button class="fav-btn${isFav ? " active" : ""}" onclick="toggleFav('${g.id}',event)" title="${starLabel}" aria-label="${starLabel}">${starChar}</button>
+      <button class="gpc-fav${isFav?" active":""}"
+        onclick="toggleFav('${g.id}',event)"
+        title="${isFav?"Remove from favourites":"Add to favourites"}">${isFav?"★":"☆"}</button>
     </div>`;
   };
 
-  const favGenres = favIds.map(id => KB.genres.find(g => g.id === id)).filter(Boolean).sort((a,b) => a.name.localeCompare(b.name));
-  const favSection = `
-    <div class="genre-group">
-      <div class="fav-group-label">★ Favorites</div>
-      ${favGenres.length
-        ? `<div class="genre-grid">${favGenres.map(mkCard).join("")}</div>`
-        : `<div class="fav-empty">Tap ☆ on any genre to save it here</div>`}
-    </div>`;
+  // Build grid content
+  const favGenres = favIds.map(id => KB.genres.find(g => g.id === id)).filter(Boolean);
+  let gridHTML = "";
+
+  if (activeGrp === "__fav") {
+    gridHTML = favGenres.length
+      ? `<div class="gpc-grid">${favGenres.map(mkCard).join("")}</div>`
+      : `<div class="gpc-empty">Tap ☆ on any genre to save it here.</div>`;
+  } else if (activeGrp) {
+    const gs = (groups[activeGrp] || []).slice().sort((a,b) => a.name.localeCompare(b.name));
+    gridHTML = `<div class="gpc-grid">${gs.map(mkCard).join("")}</div>`;
+  } else {
+    // All — favourites first, then grouped sections
+    if (favGenres.length) {
+      gridHTML += `<div class="gpc-section">
+        <div class="gpc-section-label">★ Favourites</div>
+        <div class="gpc-grid">${favGenres.map(mkCard).join("")}</div>
+      </div>`;
+    }
+    gridHTML += sortedGroupKeys.map(grp => {
+      const gs = groups[grp].slice().sort((a,b) => a.name.localeCompare(b.name));
+      return `<div class="gpc-section">
+        <div class="gpc-section-label">${esc(grp)}</div>
+        <div class="gpc-grid">${gs.map(mkCard).join("")}</div>
+      </div>`;
+    }).join("");
+  }
 
   return `
     <div class="card">
       <div class="layer-hdr" style="--layer-color:var(--l1)">
         <div class="layer-badge">L1</div>
         <div class="layer-title">Genre Anchor</div>
-        <div class="layer-hint">Most important — v5 loads the production framework from this</div>
+        <div class="layer-hint">Choose your main genre — anchors the entire prompt</div>
       </div>
-      <div class="card-inner">
-        ${favSection}
-        ${sortedGroups.map(([grp, gs]) => `
-          <div class="genre-group">
-            <div class="genre-group-label">${esc(grp)}</div>
-            <div class="genre-grid">${gs.map(mkCard).join("")}</div>
-          </div>
-        `).join("")}
-      </div>
+      <div class="gft-tabs-row">${tabs}</div>
+      <div class="gpc-body">${gridHTML}</div>
     </div>
   `;
 }
@@ -929,7 +962,7 @@ function bindTempoSlider() {
 // ═══════════════════════════════════════════════════════════════
 function clearGenre() {
   S.genre = null; S.subgenre = ""; S.customSubgenre = "";
-  S.moods = []; S.bpm = null; S.instruments = []; S.production = [];
+  S.moods = []; S.bpm = null; S.instruments = []; S.production = []; S.genreGroup = null;
   S.qualityTags = []; S.vocalTags = [];
   S.metaProductionTags = []; S.metaMoodTags = []; S.artistRef = "";
   S.vocalGender = null; S.weirdness = 50; S.styleInfluence = 50;
@@ -942,6 +975,8 @@ function getFavs() {
   try { return JSON.parse(localStorage.getItem("sunoFavGenres") || "[]"); } catch { return []; }
 }
 function saveFavs(arr) { localStorage.setItem("sunoFavGenres", JSON.stringify(arr)); }
+function setGenreFilter(g) { S.genreGroup = g || null; render(); }
+
 function toggleFav(id, e) {
   e.stopPropagation();
   const favs = getFavs();
