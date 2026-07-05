@@ -908,6 +908,7 @@ function outputHTML() {
 // PATCH PREVIEWS (fast update without full re-render)
 // ═══════════════════════════════════════════════════════════════
 function patchPreviews() {
+  patchCloudBtn();
   const raw = assemble();
   const lyr = assembleLyrics();
   el("style-raw") && (el("style-raw").value = raw);
@@ -1767,6 +1768,267 @@ function closeValidate() {
   }
 }
 
+
+// ── SONG SYNC (PocketBase) ────────────────────────────────────
+let _songId    = null;   // current PocketBase record ID (null = unsaved)
+let _songTitle = "";     // current song title
+let _savedHash = "";     // JSON hash of S when last synced
+
+function _stateHash() {
+  // exclude step/lang/open from dirty check
+  const { step, lang, open, genreGroup, ...core } = S;
+  return JSON.stringify(core);
+}
+function _isDirty() { return _stateHash() !== _savedHash; }
+
+function _cloudIcon() {
+  if (!PB.isAuth) return "☁";
+  if (_songId && !_isDirty()) return '<span style="color:#22c55e">☁✓</span>';
+  if (_songId &&  _isDirty()) return '<span style="color:#f59e0b">☁●</span>';
+  return "☁";
+}
+
+function patchCloudBtn() {
+  const btn = document.getElementById('cloud-btn');
+  if (btn) btn.innerHTML = _cloudIcon() + (PB.isAuth ? ` ${_songTitle||"Songs"}` : " Sync");
+}
+
+// ── AUTH MODAL ───────────────────────────────────────────────
+function showAuth() {
+  const existing = document.getElementById('auth-modal');
+  if (existing) { existing.remove(); return; }
+  document.body.insertAdjacentHTML('afterbegin', `
+    <div class="pb-modal" id="auth-modal">
+      <div class="pb-card">
+        <div class="pb-hdr">
+          <span>☁ Connect to PocketBase</span>
+          <button class="pb-close" onclick="closeModal('auth-modal')">✕</button>
+        </div>
+        <div class="pb-body" style="gap:10px">
+          <label class="pb-label">PocketBase Server URL
+            <input id="pb-url-input" class="pb-input" type="url"
+              value="${PB.url}" placeholder="https://your-server.fly.dev">
+          </label>
+          <label class="pb-label">Email
+            <input id="pb-email-input" class="pb-input" type="email"
+              value="${PB.userEmail}" placeholder="you@email.com">
+          </label>
+          <label class="pb-label">Password
+            <input id="pb-pw-input" class="pb-input" type="password" placeholder="••••••••">
+          </label>
+          <div id="pb-auth-err" class="pb-err" style="display:none"></div>
+        </div>
+        <div class="pb-foot">
+          <button class="btn" onclick="pbDoRegister()">Register (new)</button>
+          <button class="btn btn-primary" onclick="pbDoLogin()">Login →</button>
+        </div>
+      </div>
+    </div>`);
+  document.body.style.overflow = 'hidden';
+}
+
+async function pbDoLogin() {
+  const url = document.getElementById('pb-url-input').value.trim();
+  const email = document.getElementById('pb-email-input').value.trim();
+  const pw    = document.getElementById('pb-pw-input').value;
+  const err   = document.getElementById('pb-auth-err');
+  err.style.display = 'none';
+  try {
+    await PB.login(url, email, pw);
+    closeModal('auth-modal');
+    patchCloudBtn();
+    showSongLibrary();
+  } catch(e) {
+    err.textContent = e.message; err.style.display = 'block';
+  }
+}
+
+async function pbDoRegister() {
+  const url = document.getElementById('pb-url-input').value.trim();
+  const email = document.getElementById('pb-email-input').value.trim();
+  const pw    = document.getElementById('pb-pw-input').value;
+  const err   = document.getElementById('pb-auth-err');
+  err.style.display = 'none';
+  try {
+    await PB.register(url, email, pw);
+    closeModal('auth-modal');
+    patchCloudBtn();
+    showSongLibrary();
+  } catch(e) {
+    err.textContent = e.message; err.style.display = 'block';
+  }
+}
+
+// ── SONG LIBRARY ─────────────────────────────────────────────
+async function showSongLibrary() {
+  if (!PB.isAuth) { showAuth(); return; }
+  const existing = document.getElementById('songs-modal');
+  if (existing) existing.remove();
+  document.body.insertAdjacentHTML('afterbegin', `
+    <div class="pb-modal" id="songs-modal">
+      <div class="pb-card pb-card-wide">
+        <div class="pb-hdr">
+          <span>🎵 My Songs</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="pb-user-badge">${PB.userEmail}</span>
+            <button class="pb-close" onclick="closeModal('songs-modal')">✕</button>
+          </div>
+        </div>
+        <div class="pb-toolbar">
+          <button class="btn btn-primary" onclick="pbNewSong()">+ New Song</button>
+          <button class="btn" onclick="pbSaveCurrent()">💾 Save Current</button>
+          <button class="btn btn-ghost" onclick="pbLogout()">Logout</button>
+        </div>
+        <div class="pb-body" id="songs-list">
+          <div class="pb-loading">Loading songs…</div>
+        </div>
+      </div>
+    </div>`);
+  document.body.style.overflow = 'hidden';
+  await pbRefreshList();
+}
+
+async function pbRefreshList() {
+  const el = document.getElementById('songs-list');
+  if (!el) return;
+  el.innerHTML = '<div class="pb-loading">Loading…</div>';
+  try {
+    const songs = await PB.listSongs();
+    if (songs.length === 0) {
+      el.innerHTML = '<div class="pb-empty">No songs yet. Click "+ New Song" to save your current work.</div>';
+      return;
+    }
+    el.innerHTML = songs.map(s => {
+      const isActive = s.id === _songId;
+      const d = new Date(s.updated);
+      const ago = _timeAgo(d);
+      let stateObj = {};
+      try { stateObj = JSON.parse(s.state); } catch(e) {}
+      const preview = [stateObj.genre, stateObj.subgenre||stateObj.customSubgenre,
+        (stateObj.moods||[]).slice(0,2).join(', ')].filter(Boolean).join(' · ') || '—';
+      return `<div class="song-row${isActive?' active':''}">
+        <div class="song-row-info">
+          <div class="song-row-title">${esc(s.title)}${isActive?' <span class="song-active-badge">editing</span>':''}</div>
+          <div class="song-row-meta">${preview}</div>
+          <div class="song-row-time">${ago}</div>
+        </div>
+        <div class="song-row-actions">
+          <button class="btn btn-sm" onclick="pbOpenSong('${s.id}','${esc(s.title)}')">Open</button>
+          <button class="btn btn-sm" onclick="pbOverwriteSong('${s.id}','${esc(s.title)}')">Overwrite</button>
+          <button class="btn btn-sm" onclick="pbShowShare('${s.id}')">Share</button>
+          <button class="btn btn-sm btn-danger-ghost" onclick="pbDeleteSong('${s.id}','${esc(s.title)}')">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div class="pb-err">${e.message}</div>`;
+  }
+}
+
+function _timeAgo(d) {
+  const s = Math.round((Date.now() - d) / 1000);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.round(s/60) + 'm ago';
+  if (s < 86400) return Math.round(s/3600) + 'h ago';
+  return Math.round(s/86400) + 'd ago';
+}
+
+async function pbNewSong() {
+  const title = prompt('Song title:', _songTitle || [S.genre, S.subgenre||S.customSubgenre].filter(Boolean).join(' · ') || 'Untitled');
+  if (!title) return;
+  try {
+    const rec = await PB.saveSong(null, title, S);
+    _songId = rec.id; _songTitle = rec.title; _savedHash = _stateHash();
+    patchCloudBtn();
+    await pbRefreshList();
+    pbToast('✓ Saved: ' + title);
+  } catch(e) { pbToast('Error: ' + e.message, true); }
+}
+
+async function pbSaveCurrent() {
+  if (!PB.isAuth) { showAuth(); return; }
+  if (!_songId) { await pbNewSong(); return; }
+  try {
+    await PB.saveSong(_songId, _songTitle, S);
+    _savedHash = _stateHash();
+    patchCloudBtn();
+    pbToast('✓ Saved');
+  } catch(e) { pbToast('Error: ' + e.message, true); }
+}
+
+async function pbOpenSong(id, title) {
+  if (_isDirty() && _songId) {
+    if (!confirm('You have unsaved changes. Open anyway?')) return;
+  }
+  try {
+    const rec = await PB.getSong(id);
+    const state = JSON.parse(rec.state);
+    // Restore safe keys only
+    const safe = ['genre','subgenre','customSubgenre','moods','customMood','bpm',
+      'instruments','customInstruments','production','customProduction',
+      'qualityTags','vocalTags','metaProductionTags','metaMoodTags','artistRef',
+      'excludes','customExcludes','vocalGender','weirdness','styleInfluence',
+      'customStyleText','lyricsSections','useGuidedLyrics','freeLyrics','vocalistProfile'];
+    safe.forEach(k => { if (state[k] !== undefined) S[k] = state[k]; });
+    S.step = 1;
+    _songId = id; _songTitle = title; _savedHash = _stateHash();
+    render(); patchCloudBtn();
+    closeModal('songs-modal');
+    pbToast('✓ Opened: ' + title);
+  } catch(e) { pbToast('Error: ' + e.message, true); }
+}
+
+async function pbOverwriteSong(id, title) {
+  if (!confirm(`Overwrite "${title}" with current state?`)) return;
+  try {
+    await PB.saveSong(id, title, S);
+    if (id === _songId) { _savedHash = _stateHash(); patchCloudBtn(); }
+    await pbRefreshList();
+    pbToast('✓ Overwritten: ' + title);
+  } catch(e) { pbToast('Error: ' + e.message, true); }
+}
+
+async function pbDeleteSong(id, title) {
+  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  try {
+    await PB.deleteSong(id);
+    if (id === _songId) { _songId = null; _songTitle = ''; patchCloudBtn(); }
+    await pbRefreshList();
+    pbToast('Deleted: ' + title);
+  } catch(e) { pbToast('Error: ' + e.message, true); }
+}
+
+async function pbShowShare(songId) {
+  const email = prompt('Invite by email:');
+  if (!email) return;
+  const role = confirm(`Give ${email} editor access?\n(OK = editor, Cancel = viewer)`) ? 'editor' : 'viewer';
+  try {
+    await PB.shareSong(songId, email, role);
+    pbToast(`✓ Shared with ${email} as ${role}`);
+  } catch(e) { pbToast('Error: ' + e.message, true); }
+}
+
+function pbLogout() {
+  PB.logout();
+  _songId = null; _songTitle = ''; _savedHash = '';
+  patchCloudBtn();
+  closeModal('songs-modal');
+  pbToast('Logged out');
+}
+
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) { el.style.opacity='0'; setTimeout(()=>{ el.remove(); document.body.style.overflow=''; },200); }
+}
+
+function pbToast(msg, isErr) {
+  const t = document.createElement('div');
+  t.className = 'pb-toast' + (isErr ? ' pb-toast-err' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2400);
+}
+
 // ── INTRO / ONBOARDING ───────────────────────────────────────
 function introHTML() {
   const i = t("intro");
@@ -2056,3 +2318,4 @@ render();
 // version label
 const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
 if (!localStorage.getItem('rickai_intro_seen')) showIntro();
+patchCloudBtn();

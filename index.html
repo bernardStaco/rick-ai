@@ -559,6 +559,114 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 
 
 
+
+/* ── POCKETBASE / SONG SYNC ── */
+.btn-cloud {
+  font-weight: 700; font-size: 12px;
+  background: rgba(139,92,246,.1);
+  border-color: rgba(139,92,246,.3);
+  white-space: nowrap;
+}
+.btn-cloud:hover { background: rgba(139,92,246,.2); border-color: var(--l1); }
+
+/* Modal base */
+.pb-modal {
+  position: fixed; inset: 0; z-index: 3000;
+  background: rgba(0,0,0,.65); backdrop-filter: blur(5px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; opacity: 1; transition: opacity .2s;
+}
+.pb-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; width: min(460px,100%);
+  max-height: 88vh; display: flex; flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+}
+.pb-card-wide { width: min(680px,100%); }
+.pb-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+  font-weight: 800; font-size: 15px; flex-shrink: 0;
+}
+.pb-close {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 16px; padding: 2px 6px;
+  border-radius: 6px; font-family: inherit; transition: all .15s;
+}
+.pb-close:hover { background: var(--surface2); color: var(--text); }
+.pb-toolbar {
+  display: flex; gap: 8px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
+}
+.pb-body {
+  overflow-y: auto; padding: 14px 16px;
+  flex: 1; display: flex; flex-direction: column; gap: 8px;
+  scrollbar-width: thin;
+}
+.pb-foot {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 12px 18px; border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.pb-label {
+  display: flex; flex-direction: column; gap: 5px;
+  font-size: 12px; font-weight: 700; color: var(--text-muted);
+}
+.pb-input {
+  padding: 8px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text); font-size: 14px; font-family: inherit;
+  transition: border-color .15s; outline: none;
+}
+.pb-input:focus { border-color: var(--l1); }
+.pb-err {
+  padding: 8px 12px; background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.3); border-radius: 8px;
+  color: #ef4444; font-size: 13px;
+}
+.pb-loading, .pb-empty {
+  padding: 24px; text-align: center;
+  color: var(--text-muted); font-size: 13px; font-style: italic;
+}
+.pb-user-badge {
+  font-size: 11px; color: var(--text-muted);
+  background: var(--surface2); padding: 2px 8px;
+  border-radius: 10px; border: 1px solid var(--border);
+}
+
+/* Song rows */
+.song-row {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+  display: flex; align-items: flex-start; gap: 12px;
+  flex-wrap: wrap;
+}
+.song-row.active { border-color: var(--l1); background: color-mix(in srgb, var(--l1) 6%, var(--surface)); }
+.song-row-info { flex: 1; min-width: 0; }
+.song-row-title {
+  font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px;
+}
+.song-active-badge {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  background: var(--l1); color: #fff;
+  padding: 1px 6px; border-radius: 8px; margin-left: 6px;
+}
+.song-row-meta { font-size: 12px; color: var(--text-dim); margin-bottom: 2px; }
+.song-row-time { font-size: 11px; color: var(--text-muted); }
+.song-row-actions {
+  display: flex; gap: 5px; flex-wrap: wrap; flex-shrink: 0;
+}
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* Toast */
+.pb-toast {
+  position: fixed; bottom: 80px; right: 20px; z-index: 9999;
+  background: #22c55e; color: #fff; font-size: 13px; font-weight: 700;
+  padding: 9px 18px; border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  opacity: 1; transition: opacity .3s;
+}
+.pb-toast-err { background: #ef4444; }
+
 /* ── VALIDATE MODAL ── */
 .val-modal {
   position: fixed; inset: 0; z-index: 2000;
@@ -962,6 +1070,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
       <div class="theme-row">
         <div id="theme-swatches" style="display:flex;gap:4px"></div>
       </div>
+      <button class="btn btn-cloud" id="cloud-btn" onclick="showSongLibrary()">☁ Sync</button>
       <button class="btn" onclick="openPresets()">⭐ Presets</button>
       <button class="btn btn-ghost" onclick="showIntro()" title="Guide / Aide" style="font-size:15px;padding:6px 10px;">?</button>
       <button class="btn" onclick="importJSON()">⬆ Import</button>
@@ -1005,7 +1114,8 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 
 <script src="kb.js"></script>
 <script src="lang.js"></script>
-<script src="app.js"></script>
+<script src="pb.js"></script>
+  <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () =>
