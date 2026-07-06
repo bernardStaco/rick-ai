@@ -1,6 +1,6 @@
 // Rick AI — Service Worker
 const CACHE = "rickai-v1";
-const ASSETS = ["./index.html","./app.js","./lang.js","./kb.js","./manifest.json"];
+const ASSETS = ["./index.html","./app.js","./lang.js","./kb.js","./manifest.json","./config.js","./github-sync.js"];
 
 self.addEventListener("install", e =>
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()))
