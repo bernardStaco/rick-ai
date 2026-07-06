@@ -2301,5 +2301,14 @@ render();
 
 // version label
 const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
-if (!localStorage.getItem('rickai_intro_seen')) showIntro();
-patchCloudBtn();
+// ── Bootstrap config from setup link (#config=BASE64) ──────────
+  const _cfgHash = location.hash;
+  if (_cfgHash.startsWith('#config=')) {
+    try {
+      const _cfg = JSON.parse(decodeURIComponent(escape(atob(_cfgHash.slice(8)))));
+      localStorage.setItem('rickai_config', JSON.stringify(_cfg));
+      history.replaceState(null, '', location.pathname + location.search);
+    } catch(e) { console.warn('Invalid config hash:', e); }
+  }
+  if (!localStorage.getItem('rickai_intro_seen')) showIntro();
+  patchCloudBtn();
