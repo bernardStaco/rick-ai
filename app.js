@@ -1769,7 +1769,16 @@ function closeValidate() {
 }
 
 
-// ── SONG SYNC (GitHub) ───────────────────────────────────────
+// ── SONG MANAGEMENT (localStorage) ──────────────────────────
+const LS_SONGS = 'rickai_songs';
+
+function lsGetSongs() {
+  try { return JSON.parse(localStorage.getItem(LS_SONGS) || '[]'); } catch(e) { return []; }
+}
+function lsPutSongs(songs) {
+  localStorage.setItem(LS_SONGS, JSON.stringify(songs));
+}
+
 let _songId    = null;
 let _songTitle = "";
 let _savedHash = "";
@@ -1783,218 +1792,143 @@ function _isDirty() { return _stateHash() !== _savedHash; }
 function patchCloudBtn() {
   const btn = document.getElementById('cloud-btn');
   if (!btn) return;
-  const ok = typeof GH !== 'undefined' && GH.isAuth;
-  if (!ok) { btn.innerHTML = '☁ Sync'; return; }
-  const label = _songTitle || GH.user;
-  if (_songId && !_isDirty()) btn.innerHTML = `<span style="color:#22c55e">☁✓</span> ${label}`;
-  else if (_songId)           btn.innerHTML = `<span style="color:#f59e0b">☁●</span> ${label}`;
-  else                        btn.innerHTML = `☁ ${GH.user}`;
-}
-
-// ── AUTH MODAL (name + PIN) ───────────────────────────────────
-function showAuth() {
-  const existing = document.getElementById('auth-modal');
-  if (existing) { existing.remove(); return; }
-  const users = (typeof RICKAI_CONFIG !== 'undefined') ? RICKAI_CONFIG.users : [];
-  if (!users.length) {
-    alert('config.js not set up yet.\nSee SETUP.md for instructions.');
-    return;
-  }
-  const opts = users.map(u =>
-    `<option value="${esc(u.name)}">${esc(u.name)}</option>`).join('');
-  document.body.insertAdjacentHTML('afterbegin', `
-    <div class="pb-modal" id="auth-modal">
-      <div class="pb-card">
-        <div class="pb-hdr">
-          <span>👤 Who are you?</span>
-          <button class="pb-close" onclick="closeModal('auth-modal')">✕</button>
-        </div>
-        <div class="pb-body" style="gap:12px">
-          <label class="pb-label">Your name
-            <select id="gh-user-sel" class="pb-input">
-              <option value="">Select…</option>
-              ${opts}
-            </select>
-          </label>
-          <label class="pb-label">PIN
-            <input id="gh-pin-inp" class="pb-input" type="password"
-              placeholder="••••" maxlength="8" inputmode="numeric">
-          </label>
-          <div id="gh-auth-err" class="pb-err" style="display:none"></div>
-        </div>
-        <div class="pb-foot">
-          <button class="btn" onclick="closeModal('auth-modal')">Cancel</button>
-          <button class="btn btn-primary" onclick="ghDoLogin()">Enter →</button>
-        </div>
-      </div>
-    </div>`);
-  document.body.style.overflow = 'hidden';
-}
-
-function ghDoLogin() {
-  const name = document.getElementById('gh-user-sel').value;
-  const pin  = document.getElementById('gh-pin-inp').value;
-  const err  = document.getElementById('gh-auth-err');
-  err.style.display = 'none';
-  try {
-    GH.login(name, pin);
-    closeModal('auth-modal');
-    patchCloudBtn();
-    showSongLibrary();
-  } catch(e) {
-    err.textContent = e.message; err.style.display = 'block';
-  }
+  if (_songId && !_isDirty()) btn.innerHTML = '<span style="color:#22c55e">💾</span> ' + (_songTitle || 'Songs');
+  else if (_songId)           btn.innerHTML = '<span style="color:#f59e0b">💾●</span> ' + (_songTitle || 'Songs');
+  else                        btn.innerHTML = '💾 Songs';
 }
 
 // ── SONG LIBRARY ─────────────────────────────────────────────
-async function showSongLibrary() {
-  if (typeof GH === 'undefined' || !RICKAI_CONFIG) {
-    alert('config.js not set up yet.\nSee SETUP.md.'); return;
-  }
-  if (!GH.isAuth) { showAuth(); return; }
+function showSongLibrary() {
   const existing = document.getElementById('songs-modal');
   if (existing) existing.remove();
   document.body.insertAdjacentHTML('afterbegin', `
     <div class="pb-modal" id="songs-modal">
       <div class="pb-card pb-card-wide">
         <div class="pb-hdr">
-          <span>🎵 ${GH.user}'s Songs</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <span class="pb-user-badge">${GH.user}</span>
-            <button class="pb-close" onclick="closeModal('songs-modal')">✕</button>
-          </div>
+          <span>💾 My Songs</span>
+          <button class="pb-close" onclick="closeModal('songs-modal')">✕</button>
         </div>
         <div class="pb-toolbar">
-          <button class="btn btn-primary" onclick="pbNewSong()">+ New Song</button>
-          <button class="btn" onclick="pbSaveCurrent()">💾 Save Current</button>
-          <button class="btn btn-ghost" onclick="pbLogout()">Logout</button>
+          <button class="btn btn-primary" onclick="pbNewSong()">+ Save Current</button>
         </div>
-        <div class="pb-body" id="songs-list">
-          <div class="pb-loading">Loading songs…</div>
-        </div>
+        <div class="pb-body" id="songs-list"></div>
       </div>
     </div>`);
   document.body.style.overflow = 'hidden';
-  await pbRefreshList();
+  pbRefreshList();
 }
 
-async function pbRefreshList() {
+function pbRefreshList() {
   const el = document.getElementById('songs-list');
   if (!el) return;
-  el.innerHTML = '<div class="pb-loading">Loading…</div>';
-  try {
-    const songs = await GH.listSongs();
-    if (!songs.length) {
-      el.innerHTML = '<div class="pb-empty">No songs yet. Click "+ New Song" to save your current work.</div>';
-      return;
-    }
-    el.innerHTML = songs.slice().reverse().map(s => {
-      const isActive = s.id === _songId;
-      const ago = _timeAgo(new Date(s.updated));
-      let stateObj = {};
-      try { stateObj = JSON.parse(s.state); } catch(e) {}
-      const preview = [stateObj.genre,
-        stateObj.subgenre || stateObj.customSubgenre,
-        (stateObj.moods||[]).slice(0,2).join(', ')
-      ].filter(Boolean).join(' · ') || '—';
-      return `<div class="song-row${isActive?' active':''}">
-        <div class="song-row-info">
-          <div class="song-row-title">${esc(s.title)}${isActive?
-            ' <span class="song-active-badge">editing</span>':''}</div>
-          <div class="song-row-meta">${preview}</div>
-          <div class="song-row-time">${ago}</div>
-        </div>
-        <div class="song-row-actions">
-          <button class="btn btn-sm" onclick="pbOpenSong('${s.id}','${esc(s.title)}')">Open</button>
-          <button class="btn btn-sm" onclick="pbOverwriteSong('${s.id}','${esc(s.title)}')">Save</button>
-          <button class="btn btn-sm btn-danger-ghost" onclick="pbDeleteSong('${s.id}','${esc(s.title)}')">Delete</button>
-        </div>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    el.innerHTML = `<div class="pb-err">${e.message}</div>`;
+  const songs = lsGetSongs();
+  if (!songs.length) {
+    el.innerHTML = '<div class="pb-empty">No saved songs yet. Click "+ Save Current" to save your work.</div>';
+    return;
   }
+  el.innerHTML = songs.slice().reverse().map(s => {
+    const isActive = s.id === _songId;
+    const ago = _timeAgo(new Date(s.updated));
+    let stateObj = {};
+    try { stateObj = JSON.parse(s.state); } catch(e) {}
+    const preview = [stateObj.genre,
+      stateObj.subgenre || stateObj.customSubgenre,
+      (stateObj.moods || []).slice(0, 2).join(', ')
+    ].filter(Boolean).join(' · ') || '—';
+    return `<div class="song-row${isActive ? ' active' : ''}">
+      <div class="song-row-info">
+        <div class="song-row-title">${esc(s.title)}${isActive ?
+          ' <span class="song-active-badge">editing</span>' : ''}</div>
+        <div class="song-row-meta">${preview}</div>
+        <div class="song-row-time">${ago}</div>
+      </div>
+      <div class="song-row-actions">
+        <button class="btn btn-sm" onclick="pbOpenSong('${s.id}','${esc(s.title)}')">Open</button>
+        <button class="btn btn-sm" onclick="pbOverwriteSong('${s.id}','${esc(s.title)}')">Save</button>
+        <button class="btn btn-sm btn-danger-ghost" onclick="pbDeleteSong('${s.id}','${esc(s.title)}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function _timeAgo(d) {
   const s = Math.round((Date.now() - d) / 1000);
   if (s < 60) return 'just now';
-  if (s < 3600) return Math.round(s/60) + 'm ago';
-  if (s < 86400) return Math.round(s/3600) + 'h ago';
-  return Math.round(s/86400) + 'd ago';
+  if (s < 3600) return Math.round(s / 60) + 'm ago';
+  if (s < 86400) return Math.round(s / 3600) + 'h ago';
+  return Math.round(s / 86400) + 'd ago';
 }
 
-async function pbNewSong() {
+function pbNewSong() {
   const title = prompt('Song title:',
-    _songTitle || [S.genre, S.subgenre||S.customSubgenre].filter(Boolean).join(' · ') || 'Untitled');
+    _songTitle || [S.genre, S.subgenre || S.customSubgenre].filter(Boolean).join(' · ') || 'Untitled');
   if (!title) return;
-  try {
-    const rec = await GH.saveSong(null, title, S);
-    _songId = rec.id; _songTitle = rec.title; _savedHash = _stateHash();
-    patchCloudBtn();
-    await pbRefreshList();
-    pbToast('✓ Saved: ' + title);
-  } catch(e) { pbToast('Error: ' + e.message, true); }
+  const songs = lsGetSongs();
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const now = new Date().toISOString();
+  songs.push({ id, title, state: JSON.stringify(S), created: now, updated: now });
+  lsPutSongs(songs);
+  _songId = id; _songTitle = title; _savedHash = _stateHash();
+  pbRefreshList(); patchCloudBtn();
+  pbToast('✓ Saved: ' + title);
 }
 
-async function pbSaveCurrent() {
-  if (typeof GH === 'undefined' || !GH.isAuth) { showAuth(); return; }
-  if (!_songId) { await pbNewSong(); return; }
-  try {
-    await GH.saveSong(_songId, _songTitle, S);
-    _savedHash = _stateHash();
-    patchCloudBtn();
-    pbToast('✓ Saved');
-  } catch(e) { pbToast('Error: ' + e.message, true); }
+function pbSaveCurrent() {
+  if (!_songId) { pbNewSong(); return; }
+  const songs = lsGetSongs();
+  const idx = songs.findIndex(s => s.id === _songId);
+  const now = new Date().toISOString();
+  if (idx >= 0) {
+    songs[idx] = Object.assign({}, songs[idx], { state: JSON.stringify(S), updated: now });
+  }
+  lsPutSongs(songs);
+  _savedHash = _stateHash();
+  patchCloudBtn();
+  pbToast('✓ Saved');
 }
 
-async function pbOpenSong(id, title) {
+function pbOpenSong(id, title) {
   if (_isDirty() && _songId) {
     if (!confirm('You have unsaved changes. Open anyway?')) return;
   }
-  try {
-    const rec = await GH.getSong(id);
-    const state = JSON.parse(rec.state);
-    const safe = ['genre','subgenre','customSubgenre','moods','customMood','bpm',
-      'instruments','customInstruments','production','customProduction',
-      'qualityTags','vocalTags','metaProductionTags','metaMoodTags','artistRef',
-      'excludes','customExcludes','vocalGender','weirdness','styleInfluence',
-      'customStyleText','lyricsSections','useGuidedLyrics','freeLyrics','vocalistProfile'];
-    safe.forEach(k => { if (state[k] !== undefined) S[k] = state[k]; });
-    S.step = 1;
-    _songId = id; _songTitle = title; _savedHash = _stateHash();
-    render(); patchCloudBtn();
-    closeModal('songs-modal');
-    pbToast('✓ Opened: ' + title);
-  } catch(e) { pbToast('Error: ' + e.message, true); }
-}
-
-async function pbOverwriteSong(id, title) {
-  if (!confirm(`Overwrite "${title}" with current state?`)) return;
-  try {
-    await GH.saveSong(id, title, S);
-    if (id === _songId) { _savedHash = _stateHash(); patchCloudBtn(); }
-    await pbRefreshList();
-    pbToast('✓ Saved: ' + title);
-  } catch(e) { pbToast('Error: ' + e.message, true); }
-}
-
-async function pbDeleteSong(id, title) {
-  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
-  try {
-    await GH.deleteSong(id);
-    if (id === _songId) { _songId = null; _songTitle = ''; patchCloudBtn(); }
-    await pbRefreshList();
-    pbToast('Deleted: ' + title);
-  } catch(e) { pbToast('Error: ' + e.message, true); }
-}
-
-function pbLogout() {
-  GH.logout();
-  _songId = null; _songTitle = ''; _savedHash = '';
-  patchCloudBtn();
+  const songs = lsGetSongs();
+  const s = songs.find(s => s.id === id);
+  if (!s) return;
+  let state = {};
+  try { state = JSON.parse(s.state); } catch(e) {}
+  const safe = ['genre','subgenre','customSubgenre','moods','customMood','bpm',
+    'instruments','customInstruments','production','customProduction',
+    'qualityTags','vocalTags','metaProductionTags','metaMoodTags','artistRef',
+    'excludes','customExcludes','vocalGender','weirdness','styleInfluence',
+    'customStyleText','lyricsSections','useGuidedLyrics','freeLyrics','vocalistProfile'];
+  safe.forEach(k => { if (state[k] !== undefined) S[k] = state[k]; });
+  S.step = 1;
+  _songId = id; _songTitle = title; _savedHash = _stateHash();
+  render(); patchCloudBtn();
   closeModal('songs-modal');
-  pbToast('Logged out');
+  pbToast('✓ Opened: ' + title);
+}
+
+function pbOverwriteSong(id, title) {
+  if (!confirm('Overwrite "' + title + '" with current state?')) return;
+  const songs = lsGetSongs();
+  const idx = songs.findIndex(s => s.id === id);
+  if (idx >= 0) {
+    songs[idx] = Object.assign({}, songs[idx], { state: JSON.stringify(S), updated: new Date().toISOString() });
+    lsPutSongs(songs);
+    if (id === _songId) { _savedHash = _stateHash(); patchCloudBtn(); }
+    pbRefreshList();
+    pbToast('✓ Saved: ' + title);
+  }
+}
+
+function pbDeleteSong(id, title) {
+  if (!confirm('Delete "' + title + '"? This cannot be undone.')) return;
+  const songs = lsGetSongs().filter(s => s.id !== id);
+  lsPutSongs(songs);
+  if (id === _songId) { _songId = null; _songTitle = ''; patchCloudBtn(); }
+  pbRefreshList();
+  pbToast('Deleted: ' + title);
 }
 
 function closeModal(id) {
@@ -2010,7 +1944,7 @@ function pbToast(msg, isErr) {
   t.className = 'pb-toast' + (isErr ? ' pb-toast-err' : '');
   t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 2400);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2400);
 }
 
 // ── INTRO / ONBOARDING ───────────────────────────────────────
@@ -2301,14 +2235,5 @@ render();
 
 // version label
 const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
-// ── Bootstrap config from setup link (#config=BASE64) ──────────
-  const _cfgHash = location.hash;
-  if (_cfgHash.startsWith('#config=')) {
-    try {
-      const _cfg = JSON.parse(decodeURIComponent(escape(atob(_cfgHash.slice(8)))));
-      localStorage.setItem('rickai_config', JSON.stringify(_cfg));
-      history.replaceState(null, '', location.pathname + location.search);
-    } catch(e) { console.warn('Invalid config hash:', e); }
-  }
-  if (!localStorage.getItem('rickai_intro_seen')) showIntro();
+if (!localStorage.getItem('rickai_intro_seen')) showIntro();
   patchCloudBtn();

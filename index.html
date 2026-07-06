@@ -1070,7 +1070,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
       <div class="theme-row">
         <div id="theme-swatches" style="display:flex;gap:4px"></div>
       </div>
-      <button class="btn btn-cloud" id="cloud-btn" onclick="showSongLibrary()">☁ Sync</button>
+      <button class="btn btn-cloud" id="cloud-btn" onclick="showSongLibrary()">💾 Songs</button>
       <button class="btn" onclick="openPresets()">⭐ Presets</button>
       <button class="btn btn-ghost" onclick="showIntro()" title="Guide / Aide" style="font-size:15px;padding:6px 10px;">?</button>
       <button class="btn" onclick="importJSON()">⬆ Import</button>
@@ -1114,9 +1114,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 
 <script src="kb.js"></script>
 <script src="lang.js"></script>
-<script src="config.js"></script>
-  <script src="github-sync.js"></script>
-  <script src="app.js"></script>
+<script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () =>
