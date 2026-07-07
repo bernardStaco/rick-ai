@@ -18,8 +18,6 @@ let S = {
   artistRef: "",
   excludes: [], customExcludes: [],
   vocalGender: null,
-  weirdness: 50,
-  styleInfluence: 50,
   customStyleText: "",
   lyricsSections: [],
   useGuidedLyrics: true,
@@ -622,46 +620,7 @@ function excludesHTML() {
   return sectionCard("exclude","🚫","background:var(--conflict)","Exclude / Negative Tags","Added as \"no: item\" in style field","var(--conflict)",smExclude(),body);
 }
 
-// ── SUNO MORE OPTIONS ─────────────────────────────────────────
-function moreOptsHTML() {
-  const exl = [...S.excludes, ...S.customExcludes.filter(Boolean)];
-  const exlBox = exl.length
-    ? exl.map(e=>`<span class="excl-chip">✕ ${esc(e)}</span>`).join("")
-    : `<span class="excl-box-empty">None selected — choose excludes above</span>`;
-  const smMO = `W:${S.weirdness}% · SI:${S.styleInfluence}%${S.vocalGender?" · "+S.vocalGender:""}`;
-  const body = `
-    <div class="card-inner" style="padding-bottom:8px">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">These mirror Suno's <strong style="color:var(--text-dim)">More Options</strong> panel — set them in Suno to match.</div>
-    </div>
-    <div class="excl-box-label" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);padding:0 16px 4px">Excluded Styles</div>
-    <div class="excl-box">${exlBox}</div>
-    <div class="more-opts-grid">
-      <div class="more-opt-row">
-        <span class="more-opt-label">Vocal Gender</span>
-        <div class="gender-toggle">
-          <button class="gender-btn${S.vocalGender==="Male"?" active-male":""}" onclick="S.vocalGender=S.vocalGender==='Male'?null:'Male';render()">Male</button>
-          <button class="gender-btn${S.vocalGender==="Female"?" active-female":""}" onclick="S.vocalGender=S.vocalGender==='Female'?null:'Female';render()">Female</button>
-        </div>
-      </div>
-      <div class="more-opt-row">
-        <span class="more-opt-label">Weirdness</span>
-        <div class="opts-slider-wrap">
-          <input type="range" class="opts-slider" min="0" max="100" step="5" value="${S.weirdness}"
-            oninput="S.weirdness=+this.value;this.nextElementSibling.textContent=this.value+'%';patchPreviews()">
-          <span class="opts-pct">${S.weirdness}%</span>
-        </div>
-      </div>
-      <div class="more-opt-row">
-        <span class="more-opt-label">Style Influence</span>
-        <div class="opts-slider-wrap">
-          <input type="range" class="opts-slider" min="0" max="100" step="5" value="${S.styleInfluence}"
-            oninput="S.styleInfluence=+this.value;this.nextElementSibling.textContent=this.value+'%';patchPreviews()">
-          <span class="opts-pct">${S.styleInfluence}%</span>
-        </div>
-      </div>
-    </div>`;
-  return sectionCard("moreopts","⚙️","background:var(--text-muted)","Suno More Options","Set these in Suno's More Options panel","var(--text-muted)",smMO,body);
-}
+// moreOptsHTML() removed — weirdness & style influence removed from UX
 
 // ── CUSTOM STYLE TEXT ──────────────────────────────────────────
 function customStyleHTML() {
@@ -867,14 +826,6 @@ function moreOptsOutputHTML() {
           <div class="mo-field-label">Vocal Gender</div>
           <div class="mo-field-val${S.vocalGender?"":" empty"}">${S.vocalGender||"Not set"}</div>
         </div>
-        <div class="mo-field">
-          <div class="mo-field-label">Weirdness</div>
-          <div class="mo-field-val">${S.weirdness}%</div>
-        </div>
-        <div class="mo-field">
-          <div class="mo-field-label">Style Influence</div>
-          <div class="mo-field-val">${S.styleInfluence}%</div>
-        </div>
       </div>
     </div>
   `;
@@ -966,7 +917,7 @@ function clearGenre() {
   S.moods = []; S.bpm = null; S.instruments = []; S.production = []; S.genreGroup = "Caribbean";
   S.qualityTags = []; S.vocalTags = [];
   S.metaProductionTags = []; S.metaMoodTags = []; S.artistRef = "";
-  S.vocalGender = null; S.weirdness = 50; S.styleInfluence = 50;
+  S.vocalGender = null;
   S.step = 1;
   render();
 }
@@ -1353,8 +1304,7 @@ function importJSON() {
           excludes: saved.excludes || [],
           customExcludes: saved.customExcludes || [],
           vocalGender: saved.vocalGender || null,
-          weirdness: saved.weirdness ?? 50,
-          styleInfluence: saved.styleInfluence ?? 50
+
         };
         render();
       } catch(err) { alert("Invalid JSON: " + err.message); }
@@ -1376,7 +1326,7 @@ function resetAll() {
     qualityTags: [], vocalTags: [],
     metaProductionTags: [], metaMoodTags: [], artistRef: "",
     excludes: [], customExcludes: [],
-    vocalGender: null, weirdness: 50, styleInfluence: 50,
+    vocalGender: null, genreGroup: "Caribbean",
     vocalistProfile: null,
     customStyleText: "", lyricsSections: [],
     useGuidedLyrics: true, freeLyrics: "",
@@ -1738,6 +1688,18 @@ function validateHTML() {
 }
 
 
+function validateStepHTML() {
+  return `
+    <div class="vstep-wrap">
+      <div class="vstep-badge-row">
+        <span class="vstep-opt-badge">⚡ Optional — but recommended</span>
+        <p class="vstep-opt-hint">A quick scan catches common mistakes before you spend a generation. You can also skip straight to Copy &amp; Generate below.</p>
+      </div>
+      <div class="vstep-body">${validateHTML()}</div>
+    </div>
+  `;
+}
+
 function showValidate() {
   // Re-render if already open (picks up state changes)
   const existing = document.getElementById('validate-modal');
@@ -1899,7 +1861,7 @@ function pbOpenSong(id, title) {
   const safe = ['genre','subgenre','customSubgenre','moods','customMood','bpm',
     'instruments','customInstruments','production','customProduction',
     'qualityTags','vocalTags','metaProductionTags','metaMoodTags','artistRef',
-    'excludes','customExcludes','vocalGender','weirdness','styleInfluence',
+    'excludes','customExcludes','vocalGender',
     'customStyleText','lyricsSections','useGuidedLyrics','freeLyrics','vocalistProfile'];
   safe.forEach(k => { if (state[k] !== undefined) S[k] = state[k]; });
   S.step = 1;
@@ -2150,11 +2112,14 @@ function wizardStepContent(stepDef) {
   if (!S.genre && stepDef.id !== "genre") return "";
   switch (stepDef.id) {
     case "genre":       return genrePickerHTML();
-    case "mood":        return moodHTML() + tempoHTML();
+    case "mood":        return moodHTML() + tempoHTML() + metaMoodHTML();
     case "instruments": return instrumentsHTML();
-    case "tags":        return metaTagsHTML() + metaMoodHTML() + artistRefHTML() + excludesHTML() + moreOptsHTML() + customStyleHTML();
     case "vocals":      return lyricsBuilderHTML();
-    case "production":  return productionHTML() + metaProductionHTML() + qualityHTML();
+    case "production":  return productionHTML() + metaProductionHTML() + qualityHTML() + metaTagsHTML();
+    case "reference":   return artistRefHTML();
+    case "excludes":    return excludesHTML();
+    case "style":       return customStyleHTML();
+    case "validate":    return validateStepHTML();
     default: return "";
   }
 }
@@ -2214,7 +2179,7 @@ function wizardHTML() {
           ${steps.map((_,i) => `<span class="wiz-sdot${i+1===step?" a":i+1<step?" d":""}"></span>`).join("")}
         </div>
         ${isLast
-          ? `<button class="wiz-btn wiz-btn-next" onclick="nextStep()">${t("finish")}</button>`
+          ? `<button class="wiz-btn wiz-btn-next wiz-btn-generate" onclick="copyFinal('style')">📋 ${t("generateBtn")}</button>`
           : `<button class="wiz-btn wiz-btn-next" onclick="nextStep()" ${!canNext?`disabled title="${t("genreRequired")}"`:""} >${t("next")}</button>`}
       </div>
     </div>

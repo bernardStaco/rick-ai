@@ -6,9 +6,12 @@ const WIZARD_STEPS_DEF = [
   { id:'genre',       icon:'🎵', color:'#8b5cf6' },
   { id:'mood',        icon:'✨', color:'#3b82f6' },
   { id:'instruments', icon:'🎹', color:'#14b8a6' },
-  { id:'tags',        icon:'🏷️',  color:'#22c55e' },
   { id:'vocals',      icon:'🎤', color:'#ec4899' },
   { id:'production',  icon:'🎚️',  color:'#f97316' },
+  { id:'reference',   icon:'🎙️', color:'#06b6d4' },
+  { id:'excludes',    icon:'🚫', color:'#ef4444' },
+  { id:'style',       icon:'✏️',  color:'#84cc16' },
+  { id:'validate',    icon:'✅', color:'#22c55e', optional:true },
 ];
 
 const LANG = {
@@ -16,7 +19,7 @@ const LANG = {
     intro: {
       title: "Welcome to Rick AI",
       tagline: "Your assistant for creating music with AI",
-      body: "Suno AI generates complete music from a text description. The more precise your description, the closer the result will be to what you imagine. Rick AI guides you through 6 steps to build that perfect description.",
+      body: "Suno AI generates complete music from a text description. The more precise your description, the closer the result will be to what you imagine. Rick AI guides you through 9 focused steps to build that perfect description.",
       whatYouGet: "At the end, you get:",
       styleLabel: "Style Field",
       styleDesc: "The musical description to paste into Suno",
@@ -28,12 +31,15 @@ const LANG = {
       skip: "Skip",
       reopen: "Guide",
       steps: [
-        { icon: "🎵", label: "Genre",        desc: "What music style?", ex: "e.g. Kompa, Zouk, R&B" },
-        { icon: "✨", label: "Mood",          desc: "What is the feel?", ex: "e.g. Melancholic, Festive, Epic" },
-        { icon: "🎹", label: "Instruments",   desc: "Which instruments?", ex: "e.g. Piano, Guitar, Brass" },
-        { icon: "🏷️", label: "Details",       desc: "Technical finishing touches", ex: "e.g. Slow tempo, Minor key" },
-        { icon: "🎤", label: "Vocals",        desc: "How does the singer sound?", ex: "e.g. Soprano, Raspy, Vibrato" },
-        { icon: "🎚️", label: "Production",    desc: "The final sonic colour", ex: "e.g. Lo-fi, Deep reverb, Cinematic" },
+        { icon: "🎵", label: "Genre",          desc: "What music style?", ex: "e.g. Kompa, Zouk, R&B" },
+        { icon: "✨", label: "Mood",            desc: "What is the feel?", ex: "e.g. Melancholic, Festive, Chill" },
+        { icon: "🎹", label: "Instruments",     desc: "Which instruments?", ex: "e.g. Piano, Guitar, Brass" },
+        { icon: "🎤", label: "Vocals",          desc: "How does the singer sound?", ex: "e.g. Raspy, Smooth, Falsetto" },
+        { icon: "🎚️", label: "Production",      desc: "The final sonic colour", ex: "e.g. Lo-fi, Deep reverb, Cinematic" },
+        { icon: "🎙️", label: "Artist Reference",desc: "Who is the style like?", ex: "e.g. J Dilla-style drums" },
+        { icon: "🚫", label: "Excludes",        desc: "What to keep out?", ex: "e.g. no: trap, no: autotune" },
+        { icon: "✏️", label: "Custom Style",    desc: "Anything extra?", ex: "e.g. dusty vinyl texture" },
+        { icon: "✅", label: "Validate",         desc: "Check your prompt (optional)", ex: "Score + smart tips" },
       ],
     },
     next: "Next →", back: "← Back", finish: "Done ✓",
@@ -74,8 +80,11 @@ const LANG = {
     genreAnchorHint: "Most important — v5 builds everything from this",
     steps: {
       genre: "Genre", mood: "Mood & Tempo", instruments: "Instruments",
-      tags: "Tags & Extras", vocals: "Vocals & Lyrics", production: "Production"
+      vocals: "Vocals & Lyrics", production: "Production",
+      reference: "Artist Ref", excludes: "Excludes", style: "Custom Style",
+      validate: "Validate ✦"
     },
+    generateBtn: "Copy & Generate",
     validate: {
       title: "Validate Prompt",
       hint: "Review your settings before generating.",
@@ -108,14 +117,18 @@ const LANG = {
       moreopts:  { title: "More Options", hint: "Gender toggle, weirdness, style influence" },
       custom:    { title: "Custom Style Text", hint: "Written verbatim into the style field" },
       lyrics:    { title: "Lyric Structure", hint: "Build lyrics with structural tags and delivery markers" },
-      vocbuild:  { title: "Vocalist Profile", hint: "Set vocal register, timbre, and persona" }
+      vocbuild:  { title: "Vocalist Profile", hint: "Set vocal register, timbre, and persona" },
+      reference: { title: "Artist Reference", hint: "Name a real artist — the most powerful v5 tool. Encodes era, tone & technique in one phrase. Use sparingly." },
+      excludes:  { title: "Styles to Exclude", hint: "Anything listed here the AI will avoid. Common conflicts like trap-hats or autotune live here." },
+      style:     { title: "Custom Style Text", hint: "Any extra descriptors written exactly as you type them — added after all other layers." },
+      validate:  { title: "Review & Generate", hint: "Check your prompt quality before sending to Suno. Optional — but a 2-second scan can save a generation." }
     }
   },
   fr: {
     intro: {
       title: "Bienvenue dans Rick AI",
       tagline: "Votre assistant pour créer de la musique avec l'IA",
-      body: "Suno AI génère de la musique complète à partir d'une description textuelle. Plus votre description est précise, plus le résultat sera proche de ce que vous imaginez. Rick AI vous guide en 6 étapes pour construire cette description parfaite.",
+      body: "Suno AI génère de la musique complète à partir d'une description textuelle. Plus votre description est précise, plus le résultat sera proche de ce que vous imaginez. Rick AI vous guide en 9 étapes ciblées pour construire cette description parfaite.",
       whatYouGet: "À la fin, vous obtenez :",
       styleLabel: "Champ Style",
       styleDesc: "La description musicale à coller dans Suno",
@@ -127,12 +140,15 @@ const LANG = {
       skip: "Passer",
       reopen: "Guide",
       steps: [
-        { icon: "🎵", label: "Genre",       desc: "Quel style de musique ?", ex: "ex. Kompa, Zouk, R&B" },
-        { icon: "✨", label: "Ambiance",     desc: "Comment ça doit sonner ?", ex: "ex. Mélancolique, Festif, Épique" },
-        { icon: "🎹", label: "Instruments",  desc: "Quels instruments ?", ex: "ex. Piano, Guitare, Cuivres" },
-        { icon: "🏷️", label: "Détails",      desc: "Les finitions techniques", ex: "ex. Tempo lent, Mode mineur" },
-        { icon: "🎤", label: "Voix",         desc: "Comment chante le chanteur ?", ex: "ex. Soprano, Rauque, Vibrato" },
-        { icon: "🎚️", label: "Production",   desc: "La couleur sonore finale", ex: "ex. Lo-fi, Reverb, Cinématique" },
+        { icon: "🎵", label: "Genre",              desc: "Quel style de musique ?", ex: "ex. Kompa, Zouk, R&B" },
+        { icon: "✨", label: "Ambiance",            desc: "Comment ça doit sonner ?", ex: "ex. Mélancolique, Festif, Chill" },
+        { icon: "🎹", label: "Instruments",         desc: "Quels instruments ?", ex: "ex. Piano, Guitare, Cuivres" },
+        { icon: "🎤", label: "Voix",               desc: "Comment chante le chanteur ?", ex: "ex. Rauque, Doux, Falsetto" },
+        { icon: "🎚️", label: "Production",          desc: "La couleur sonore finale", ex: "ex. Lo-fi, Reverb, Cinématique" },
+        { icon: "🎙️", label: "Référence Artiste",   desc: "Quel est le style ?", ex: "ex. J Dilla-style drums" },
+        { icon: "🚫", label: "Exclusions",          desc: "Qu'est-ce qu'on évite ?", ex: "ex. no: trap, no: autotune" },
+        { icon: "✏️", label: "Style Personnalisé",  desc: "Quelque chose en plus ?", ex: "ex. texture vinyle poussiéreuse" },
+        { icon: "✅", label: "Valider",              desc: "Vérifier le prompt (optionnel)", ex: "Score + conseils intelligents" },
       ],
     },
     next: "Suivant →", back: "← Retour", finish: "Terminé ✓",
@@ -173,8 +189,11 @@ const LANG = {
     genreAnchorHint: "Le plus important — v5 construit tout à partir de ça",
     steps: {
       genre: "Genre", mood: "Ambiance & Tempo", instruments: "Instruments",
-      tags: "Tags & Extras", vocals: "Voix & Paroles", production: "Production"
+      vocals: "Voix & Paroles", production: "Production",
+      reference: "Réf. Artiste", excludes: "Exclusions", style: "Style Perso",
+      validate: "Valider ✦"
     },
+    generateBtn: "Copier & Générer",
     validate: {
       title: "Valider le Prompt",
       hint: "Vérifiez vos réglages avant de générer.",
@@ -208,7 +227,11 @@ const LANG = {
       moreopts:  { title: "Plus d'Options", hint: "Bouton de genre, étrangeté, influence de style" },
       custom:    { title: "Style Personnalisé", hint: "Inséré tel quel dans le champ de style" },
       lyrics:    { title: "Structure des Paroles", hint: "Construisez vos paroles avec des tags structurels et des marqueurs de livraison" },
-      vocbuild:  { title: "Profil Vocal", hint: "Définissez le registre, le timbre et la persona vocale" }
+      vocbuild:  { title: "Profil Vocal", hint: "Définissez le registre, le timbre et la persona vocale" },
+      reference: { title: "Référence Artiste", hint: "Nommez un vrai artiste — l'outil v5 le plus puissant. Encode l'ère, le ton et la technique en une phrase. À utiliser avec parcimonie." },
+      excludes:  { title: "Styles à Exclure", hint: "Tout ce qui est listé ici sera évité par l'IA. Les conflits classiques comme trap-hats ou autotune vont ici." },
+      style:     { title: "Style Personnalisé", hint: "Tout descripteur supplémentaire écrit exactement comme vous le tapez — ajouté après toutes les autres couches." },
+      validate:  { title: "Vérifier & Générer", hint: "Vérifiez la qualité de votre prompt avant de l'envoyer à Suno. Optionnel — mais une analyse rapide peut éviter une génération ratée." }
     }
   }
 };
