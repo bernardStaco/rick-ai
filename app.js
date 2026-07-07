@@ -1753,22 +1753,103 @@ function closeValidate() {
 }
 
 
-// ── SONG MANAGEMENT (localStorage) ──────────────────────────
-const LS_SONGS = 'rickai_songs';
+// ── SONG MANAGEMENT (SQLite via sql.js · IndexedDB persistence) ─
+// Falls back to localStorage if sql.js hasn't loaded yet.
 
-function lsGetSongs() {
-  try { return JSON.parse(localStorage.getItem(LS_SONGS) || '[]'); } catch(e) { return []; }
+const LS_SONGS  = 'rickai_songs';   // kept for migration
+const IDB_NAME  = 'rickai_db';
+const IDB_STORE = 'sqlite';
+const IDB_KEY   = 'main';
+let   db        = null;             // sql.js Database instance
+
+// ── IndexedDB helpers ─────────────────────────────────────────
+function _idbOpen() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = rej;
+  });
 }
-function lsPutSongs(songs) {
+async function _idbLoad() {
+  const idb = await _idbOpen();
+  return new Promise((res, rej) => {
+    const tx  = idb.transaction(IDB_STORE, 'readonly');
+    const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+    req.onsuccess = () => res(req.result || null);
+    req.onerror   = rej;
+  });
+}
+async function _idbSave(data) {
+  const idb = await _idbOpen();
+  return new Promise((res, rej) => {
+    const tx = idb.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(data, IDB_KEY);
+    tx.oncomplete = res;
+    tx.onerror    = rej;
+  });
+}
+function _dbPersist() {
+  if (!db) return;
+  try { _idbSave(db.export()); } catch(e) { console.warn('DB persist:', e); }
+}
+
+// ── DB init (called once at startup) ─────────────────────────
+async function initDB() {
+  try {
+    if (typeof initSqlJs === 'undefined') throw new Error('sql.js not loaded');
+    const SQL   = await initSqlJs({ locateFile: f =>
+      `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` });
+    const saved = await _idbLoad();
+    db = saved ? new SQL.Database(saved) : new SQL.Database();
+    db.run(`CREATE TABLE IF NOT EXISTS songs (
+      id      TEXT PRIMARY KEY,
+      title   TEXT NOT NULL,
+      state   TEXT NOT NULL,
+      created TEXT NOT NULL,
+      updated TEXT NOT NULL
+    )`);
+    // Migrate from localStorage
+    const legacy = JSON.parse(localStorage.getItem(LS_SONGS) || '[]');
+    if (legacy.length && !dbGetSongs().length) {
+      legacy.forEach(s => _dbInsert(s.id, s.title, s.state, s.created, s.updated));
+      _dbPersist();
+      localStorage.removeItem(LS_SONGS);
+      pbToast('✓ Songs migrated to SQLite (' + legacy.length + ')');
+    }
+    patchCloudBtn();
+    console.log('SQLite ready —', dbGetSongs().length, 'songs');
+  } catch(e) {
+    console.warn('sql.js init failed, using localStorage:', e.message);
+    db = null;
+  }
+}
+
+// ── CRUD helpers ──────────────────────────────────────────────
+function _dbInsert(id, title, state, created, updated) {
+  db.run('INSERT OR REPLACE INTO songs VALUES (?,?,?,?,?)',
+    [id, title, state, created, updated]);
+}
+
+function dbGetSongs() {
+  if (!db) return JSON.parse(localStorage.getItem(LS_SONGS) || '[]');
+  const res = db.exec('SELECT id,title,state,created,updated FROM songs ORDER BY updated DESC');
+  if (!res.length) return [];
+  return res[0].values.map(([id,title,state,created,updated]) =>
+    ({ id, title, state, created, updated }));
+}
+
+function _lsFallbackPut(songs) {
   localStorage.setItem(LS_SONGS, JSON.stringify(songs));
 }
 
+// ── Session tracking ──────────────────────────────────────────
 let _songId    = null;
 let _songTitle = "";
 let _savedHash = "";
 
 function _stateHash() {
-  const { step, lang, open, genreGroup, ...core } = S;
+  const { step, substep, lang, open, genreGroup, _validateUnlocked, ...core } = S;
   return JSON.stringify(core);
 }
 function _isDirty() { return _stateHash() !== _savedHash; }
@@ -1776,12 +1857,13 @@ function _isDirty() { return _stateHash() !== _savedHash; }
 function patchCloudBtn() {
   const btn = document.getElementById('cloud-btn');
   if (!btn) return;
-  if (_songId && !_isDirty()) btn.innerHTML = '<span style="color:#22c55e">💾</span> ' + (_songTitle || 'Songs');
-  else if (_songId)           btn.innerHTML = '<span style="color:#f59e0b">💾●</span> ' + (_songTitle || 'Songs');
+  const lbl = _songTitle || 'Songs';
+  if (_songId && !_isDirty()) btn.innerHTML = '<span style="color:#22c55e">💾</span> ' + lbl;
+  else if (_songId)           btn.innerHTML = '<span style="color:#f59e0b">💾●</span> ' + lbl;
   else                        btn.innerHTML = '💾 Songs';
 }
 
-// ── SONG LIBRARY ─────────────────────────────────────────────
+// ── Song library modal ────────────────────────────────────────
 function showSongLibrary() {
   const existing = document.getElementById('songs-modal');
   if (existing) existing.remove();
@@ -1789,7 +1871,7 @@ function showSongLibrary() {
     <div class="pb-modal" id="songs-modal">
       <div class="pb-card pb-card-wide">
         <div class="pb-hdr">
-          <span>💾 My Songs</span>
+          <span>💾 My Songs ${db ? '<span style="font-size:10px;opacity:.5;font-weight:400">SQLite</span>' : ''}</span>
           <button class="pb-close" onclick="closeModal('songs-modal')">✕</button>
         </div>
         <div class="pb-toolbar">
@@ -1805,20 +1887,18 @@ function showSongLibrary() {
 function pbRefreshList() {
   const el = document.getElementById('songs-list');
   if (!el) return;
-  const songs = lsGetSongs();
+  const songs = dbGetSongs();
   if (!songs.length) {
     el.innerHTML = '<div class="pb-empty">No saved songs yet. Click "+ Save Current" to save your work.</div>';
     return;
   }
-  el.innerHTML = songs.slice().reverse().map(s => {
+  el.innerHTML = songs.map(s => {
     const isActive = s.id === _songId;
     const ago = _timeAgo(new Date(s.updated));
-    let stateObj = {};
-    try { stateObj = JSON.parse(s.state); } catch(e) {}
-    const preview = [stateObj.genre,
-      stateObj.subgenre || stateObj.customSubgenre,
-      (stateObj.moods || []).slice(0, 2).join(', ')
-    ].filter(Boolean).join(' · ') || '—';
+    let st = {};
+    try { st = JSON.parse(s.state); } catch(e) {}
+    const preview = [st.genre, st.subgenre || st.customSubgenre,
+      (st.moods || []).slice(0,2).join(', ')].filter(Boolean).join(' · ') || '—';
     return `<div class="song-row${isActive ? ' active' : ''}">
       <div class="song-row-info">
         <div class="song-row-title">${esc(s.title)}${isActive ?
@@ -1837,21 +1917,28 @@ function pbRefreshList() {
 
 function _timeAgo(d) {
   const s = Math.round((Date.now() - d) / 1000);
-  if (s < 60) return 'just now';
-  if (s < 3600) return Math.round(s / 60) + 'm ago';
-  if (s < 86400) return Math.round(s / 3600) + 'h ago';
-  return Math.round(s / 86400) + 'd ago';
+  if (s < 60)    return 'just now';
+  if (s < 3600)  return Math.round(s/60)   + 'm ago';
+  if (s < 86400) return Math.round(s/3600) + 'h ago';
+  return Math.round(s/86400) + 'd ago';
 }
 
+// ── Song actions ──────────────────────────────────────────────
 function pbNewSong() {
   const title = prompt('Song title:',
     _songTitle || [S.genre, S.subgenre || S.customSubgenre].filter(Boolean).join(' · ') || 'Untitled');
   if (!title) return;
-  const songs = lsGetSongs();
-  const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const id  = Date.now().toString(36) + Math.random().toString(36).slice(2);
   const now = new Date().toISOString();
-  songs.push({ id, title, state: JSON.stringify(S), created: now, updated: now });
-  lsPutSongs(songs);
+  const state = JSON.stringify(S);
+  if (db) {
+    _dbInsert(id, title, state, now, now);
+    _dbPersist();
+  } else {
+    const songs = JSON.parse(localStorage.getItem(LS_SONGS) || '[]');
+    songs.push({ id, title, state, created: now, updated: now });
+    _lsFallbackPut(songs);
+  }
   _songId = id; _songTitle = title; _savedHash = _stateHash();
   pbRefreshList(); patchCloudBtn();
   pbToast('✓ Saved: ' + title);
@@ -1859,15 +1946,18 @@ function pbNewSong() {
 
 function pbSaveCurrent() {
   if (!_songId) { pbNewSong(); return; }
-  const songs = lsGetSongs();
-  const idx = songs.findIndex(s => s.id === _songId);
-  const now = new Date().toISOString();
-  if (idx >= 0) {
-    songs[idx] = Object.assign({}, songs[idx], { state: JSON.stringify(S), updated: now });
+  const now   = new Date().toISOString();
+  const state = JSON.stringify(S);
+  if (db) {
+    db.run('UPDATE songs SET state=?,updated=? WHERE id=?', [state, now, _songId]);
+    _dbPersist();
+  } else {
+    const songs = JSON.parse(localStorage.getItem(LS_SONGS) || '[]');
+    const idx   = songs.findIndex(s => s.id === _songId);
+    if (idx >= 0) { songs[idx] = Object.assign({}, songs[idx], { state, updated: now }); }
+    _lsFallbackPut(songs);
   }
-  lsPutSongs(songs);
-  _savedHash = _stateHash();
-  patchCloudBtn();
+  _savedHash = _stateHash(); patchCloudBtn();
   pbToast('✓ Saved');
 }
 
@@ -1875,7 +1965,7 @@ function pbOpenSong(id, title) {
   if (_isDirty() && _songId) {
     if (!confirm('You have unsaved changes. Open anyway?')) return;
   }
-  const songs = lsGetSongs();
+  const songs = dbGetSongs();
   const s = songs.find(s => s.id === id);
   if (!s) return;
   let state = {};
@@ -1886,7 +1976,7 @@ function pbOpenSong(id, title) {
     'excludes','customExcludes','vocalGender',
     'customStyleText','lyricsSections','useGuidedLyrics','freeLyrics','vocalistProfile'];
   safe.forEach(k => { if (state[k] !== undefined) S[k] = state[k]; });
-  S.step = 1;
+  S.step = 1; S.substep = 1;
   _songId = id; _songTitle = title; _savedHash = _stateHash();
   render(); patchCloudBtn();
   closeModal('songs-modal');
@@ -1895,21 +1985,31 @@ function pbOpenSong(id, title) {
 
 function pbOverwriteSong(id, title) {
   if (!confirm('Overwrite "' + title + '" with current state?')) return;
-  const songs = lsGetSongs();
-  const idx = songs.findIndex(s => s.id === id);
-  if (idx >= 0) {
-    songs[idx] = Object.assign({}, songs[idx], { state: JSON.stringify(S), updated: new Date().toISOString() });
-    lsPutSongs(songs);
-    if (id === _songId) { _savedHash = _stateHash(); patchCloudBtn(); }
-    pbRefreshList();
-    pbToast('✓ Saved: ' + title);
+  const now   = new Date().toISOString();
+  const state = JSON.stringify(S);
+  if (db) {
+    db.run('UPDATE songs SET state=?,updated=? WHERE id=?', [state, now, id]);
+    _dbPersist();
+  } else {
+    const songs = JSON.parse(localStorage.getItem(LS_SONGS) || '[]');
+    const idx   = songs.findIndex(s => s.id === id);
+    if (idx >= 0) { songs[idx] = Object.assign({}, songs[idx], { state, updated: now }); }
+    _lsFallbackPut(songs);
   }
+  if (id === _songId) { _savedHash = _stateHash(); patchCloudBtn(); }
+  pbRefreshList();
+  pbToast('✓ Saved: ' + title);
 }
 
 function pbDeleteSong(id, title) {
   if (!confirm('Delete "' + title + '"? This cannot be undone.')) return;
-  const songs = lsGetSongs().filter(s => s.id !== id);
-  lsPutSongs(songs);
+  if (db) {
+    db.run('DELETE FROM songs WHERE id=?', [id]);
+    _dbPersist();
+  } else {
+    const songs = JSON.parse(localStorage.getItem(LS_SONGS) || '[]').filter(s => s.id !== id);
+    _lsFallbackPut(songs);
+  }
   if (id === _songId) { _songId = null; _songTitle = ''; patchCloudBtn(); }
   pbRefreshList();
   pbToast('Deleted: ' + title);
@@ -2312,3 +2412,4 @@ render();
 const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
 if (!localStorage.getItem('rickai_intro_seen')) showIntro();
   patchCloudBtn();
+initDB(); // SQLite + IndexedDB init (async, non-blocking)
