@@ -26,7 +26,7 @@ let S = {
   theme: "light",
   vocalistProfile: null,
   genreGroup: "Caribbean",
-  step: 1,
+  step: 1, substep: 1, _validateUnlocked: false,
   lang: "en"
 };
 
@@ -678,6 +678,28 @@ function stylePreviewHTML() {
 }
 
 // ── LYRICS BUILDER ────────────────────────────────────────────
+function vocalistStepHTML() {
+  const sm = S.vocalistProfile ? (S.vocalistProfile.name || "Vocal profile set") : null;
+  return sectionCard("vocbuild","🎤","background:var(--pink)","Vocal Profile",
+    "Build a vocalist persona — timbre, register, delivery style","var(--pink)",sm,
+    `<div class="card-inner">${vocalistBuilderHTML()}</div>`);
+}
+
+function lyricsOnlyHTML() {
+  const sm = smLyrics();
+  const body = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0;flex-wrap:wrap;gap:8px">
+      <div class="tab-row">
+        <button class="btn-tab${S.useGuidedLyrics?" active":""}" onclick="S.useGuidedLyrics=true;render()">${t("guidedTab")}</button>
+        <button class="btn-tab${!S.useGuidedLyrics?" active":""}" onclick="S.useGuidedLyrics=false;render()">${t("freeformTab")}</button>
+      </div>
+      <div style="font-size:10px;color:var(--warn)">&#x26A0;&#xFE0F; ${t("lyricsWarning")}</div>
+    </div>
+    ${S.useGuidedLyrics ? songStructureMapHTML()+guidedLyricsHTML() : freeformLyricsHTML()}
+  `;
+  return sectionCard("lyrics","♪","background:var(--l2)","Lyric Structure","Build lyrics with structural tags and delivery markers","var(--l2)",sm,body);
+}
+
 function lyricsBuilderHTML() {
   const noVocal = allTags().some(t => t === "[No Vocals]" || t === "[Instrumental]");
   const showVocalist = !noVocal && S.lyricsSections.length > 0;
@@ -918,7 +940,7 @@ function clearGenre() {
   S.qualityTags = []; S.vocalTags = [];
   S.metaProductionTags = []; S.metaMoodTags = []; S.artistRef = "";
   S.vocalGender = null;
-  S.step = 1;
+  S.step = 1; S.substep = 1; S._validateUnlocked = false;
   render();
 }
 
@@ -1326,7 +1348,7 @@ function resetAll() {
     qualityTags: [], vocalTags: [],
     metaProductionTags: [], metaMoodTags: [], artistRef: "",
     excludes: [], customExcludes: [],
-    vocalGender: null, genreGroup: "Caribbean",
+    vocalGender: null, genreGroup: "Caribbean", substep: 1, _validateUnlocked: false,
     vocalistProfile: null,
     customStyleText: "", lyricsSections: [],
     useGuidedLyrics: true, freeLyrics: "",
@@ -2089,18 +2111,50 @@ function wizardSteps() {
 
 function wizardTotalSteps() { return wizardSteps().length; }
 
+function _curStepDef() {
+  const steps = wizardSteps();
+  return steps[Math.max(0, Math.min((S.step||1)-1, steps.length-1))];
+}
+function _ssCount(def) { return def && def.substeps ? def.substeps.length : 1; }
+
 function nextStep() {
-  const total = wizardTotalSteps();
-  if (S.step < total) { S.step++; render(); scrollBuilderTop(); }
+  const def = _curStepDef();
+  const ssCount = _ssCount(def);
+  if ((S.substep||1) < ssCount) {
+    S.substep = (S.substep||1) + 1;
+  } else {
+    const steps = wizardSteps();
+    const total = steps.length;
+    if (S.step < total) {
+      // Unlock validate when leaving the last non-validate step
+      const nextDef = steps[S.step]; // steps[S.step] is the next step (0-indexed = S.step)
+      if (nextDef && nextDef.id === 'validate') S._validateUnlocked = true;
+      S.step++; S.substep = 1;
+    }
+  }
+  render(); scrollBuilderTop();
 }
 function prevStep() {
-  if (S.step > 1) { S.step--; render(); scrollBuilderTop(); }
+  if ((S.substep||1) > 1) {
+    S.substep--;
+  } else if (S.step > 1) {
+    S.step--;
+    const prevDef = _curStepDef();
+    S.substep = _ssCount(prevDef);
+  }
+  render(); scrollBuilderTop();
 }
 function goToStep(n) {
-  const total = wizardTotalSteps();
+  const steps = wizardSteps();
+  const total = steps.length;
+  const targetDef = steps[n - 1];
+  if (targetDef && targetDef.id === 'validate' && !S._validateUnlocked) return;
   if (n >= 1 && n <= total && (n <= S.step || S.genre)) {
-    S.step = n; render(); scrollBuilderTop();
+    S.step = n; S.substep = 1; render(); scrollBuilderTop();
   }
+}
+function goToSubstep(n) {
+  S.substep = n; render(); scrollBuilderTop();
 }
 function scrollBuilderTop() {
   const el = document.getElementById("builder-col");
@@ -2108,18 +2162,37 @@ function scrollBuilderTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function wizardStepContent(stepDef) {
+// Map subId → S.open key so each card is expanded when navigated to
+const _OPEN_MAP = {
+  mood_vibe:'mood', mood_tempo:'tempo', mood_meta:'metamood',
+  vocals_profile:'vocbuild', vocals_lyrics:'lyrics',
+  prod_style:'production', prod_meta:'metaprod', prod_quality:'quality', prod_vocal:'vocal',
+  reference:'artistref', excludes:'exclude', style:'custom',
+};
+
+function wizardStepContent(stepDef, substep) {
   if (!S.genre && stepDef.id !== "genre") return "";
-  switch (stepDef.id) {
-    case "genre":       return genrePickerHTML();
-    case "mood":        return moodHTML() + tempoHTML() + metaMoodHTML();
-    case "instruments": return instrumentsHTML();
-    case "vocals":      return lyricsBuilderHTML();
-    case "production":  return productionHTML() + metaProductionHTML() + qualityHTML() + metaTagsHTML();
-    case "reference":   return artistRefHTML();
-    case "excludes":    return excludesHTML();
-    case "style":       return customStyleHTML();
-    case "validate":    return validateStepHTML();
+  const ss = stepDef.substeps;
+  const subId = ss ? (ss[Math.max(0,(substep||1)-1)] || ss[0]).id : stepDef.id;
+  // Auto-open the card for this sub-step
+  const openKey = _OPEN_MAP[subId];
+  if (openKey && S.open) S.open[openKey] = true;
+  switch (subId) {
+    case "genre":          return genrePickerHTML();
+    case "mood_vibe":      return moodHTML();
+    case "mood_tempo":     return tempoHTML();
+    case "mood_meta":      return metaMoodHTML();
+    case "instruments":    return instrumentsHTML();
+    case "vocals_profile": return vocalistStepHTML();
+    case "vocals_lyrics":  return lyricsOnlyHTML();
+    case "prod_style":     return productionHTML();
+    case "prod_meta":      return metaProductionHTML();
+    case "prod_quality":   return qualityHTML();
+    case "prod_vocal":     return metaTagsHTML();
+    case "reference":      return artistRefHTML();
+    case "excludes":       return excludesHTML();
+    case "style":          return customStyleHTML();
+    case "validate":       return validateStepHTML();
     default: return "";
   }
 }
@@ -2130,27 +2203,65 @@ function wizardHTML() {
   const stepIdx = Math.max(0, Math.min((S.step || 1) - 1, total - 1));
   const step = stepIdx + 1;
   const stepDef = steps[stepIdx];
-  const isFirst = step === 1;
-  const isLast  = step === total;
+  const substeps = stepDef.substeps || null;
+  const ssCount  = substeps ? substeps.length : 1;
+  const substep  = Math.max(1, Math.min(S.substep || 1, ssCount));
+  const curSub   = substeps ? substeps[substep - 1] : null;
+
+  const isFirst = step === 1 && substep === 1;
+  const isLast  = step === total && substep === ssCount;
   const canNext = step === 1 ? !!S.genre : true;
   const sc = stepDef.color;
 
-  // ── Progress rail ──
+  // Header text — use substep section key when inside a substep
+  const hdrIcon  = curSub ? curSub.icon : stepDef.icon;
+  const hdrTitle = curSub
+    ? (t("section." + curSub.key + ".title") || curSub.label)
+    : (t("section." + stepDef.id + ".title") || t("steps." + stepDef.id));
+  const hdrHint = curSub
+    ? (t("section." + curSub.key + ".hint") || "")
+    : (t("section." + stepDef.id + ".hint") || "");
+
+  // Sub-step tab row
+  const sstabs = substeps ? `
+    <div class="wiz-sstabs">
+      ${substeps.map((ss, i) => {
+        const done = i + 1 < substep;
+        const act  = i + 1 === substep;
+        return (i > 0 ? '<span class="wiz-sstab-sep">›</span>' : '') +
+          `<button class="wiz-sstab${act ? ' active' : done ? ' done' : ''}"
+              onclick="goToSubstep(${i+1})" style="--sc:${sc}">
+            ${done ? '✓' : ss.icon} ${ss.label}
+          </button>`;
+      }).join("")}
+    </div>` : "";
+
+  // Progress rail (parent steps only)
   const rail = steps.map((s, i) => {
     const n = i + 1;
     const done   = n < step;
     const active = n === step;
     const cls    = done ? "done" : active ? "active" : "pending";
     const icon   = done ? "✓" : s.icon;
+    const isValidate = s.id === 'validate';
+    if (isValidate && !S._validateUnlocked) return "";
     const canGo  = n < step || (n > step && S.genre);
+    const subPip = active && s.substeps
+      ? `<div class="wiz-pill-subpip">${substep}/${ssCount}</div>` : "";
     return `
       ${i > 0 ? `<div class="wiz-line${done || active ? " lit" : ""}"></div>` : ""}
       <button class="wiz-pill ${cls}" onclick="goToStep(${n})"
         style="--sc:${s.color}" ${!canGo && n !== step ? "disabled" : ""}>
         <div class="wiz-pill-ring">${icon}</div>
         <div class="wiz-pill-lbl">${t("steps." + s.id)}</div>
+        ${subPip}
       </button>`;
   }).join("");
+
+  // Footer dots — substep dots when inside multi-substep, else parent dots
+  const dots = substeps
+    ? substeps.map((_,i) => `<span class="wiz-sdot${i+1===substep?' a':i+1<substep?' d':''}" onclick="goToSubstep(${i+1})"></span>`).join("")
+    : steps.map((_,i)    => `<span class="wiz-sdot${i+1===step?' a':i+1<step?' d':''}" onclick="goToStep(${i+1})"></span>`).join("");
 
   return `
     <div class="wizard-wrap" style="--sc:${sc}">
@@ -2158,26 +2269,25 @@ function wizardHTML() {
         <div class="wiz-rail">${rail}</div>
       </div>
       <div class="wiz-hdr">
-        <div class="wiz-hdr-icon">${stepDef.icon}</div>
+        <div class="wiz-hdr-icon">${hdrIcon}</div>
         <div class="wiz-hdr-text">
           <div class="wiz-hdr-num">${t("steps." + stepDef.id)} &middot; ${step} ${t("stepOf")} ${total}</div>
-          <h2 class="wiz-hdr-title">${t("section." + stepDef.id + ".title") || t("steps." + stepDef.id)}</h2>
-          <p class="wiz-hdr-hint">${t("section." + stepDef.id + ".hint") || ""}</p>
+          <h2 class="wiz-hdr-title">${hdrTitle}</h2>
+          <p class="wiz-hdr-hint">${hdrHint}</p>
+          ${sstabs}
         </div>
       </div>
       <div class="wiz-body">
-        ${wizardStepContent(stepDef)}
+        ${wizardStepContent(stepDef, substep)}
       </div>
       <div class="wiz-footer">
         <button class="wiz-btn wiz-btn-restart" onclick="if(confirm(t('restartBtn')+'?'))clearGenre()" title="Restart">&#8635;</button>
         <button class="wiz-btn wiz-btn-save" onclick="quickSavePreset()" title="Save preset">&#128190;</button>
-        <button class="wiz-btn wiz-btn-validate" onclick="showValidate()">&#9989; Validate</button>
+        ${S._validateUnlocked ? `<button class="wiz-btn wiz-btn-validate" onclick="showValidate()">&#9989; Validate</button>` : `<div></div>`}
         ${isFirst
           ? `<div></div>`
           : `<button class="wiz-btn wiz-btn-back" onclick="prevStep()">${t("back")}</button>`}
-        <div class="wiz-step-dots">
-          ${steps.map((_,i) => `<span class="wiz-sdot${i+1===step?" a":i+1<step?" d":""}"></span>`).join("")}
-        </div>
+        <div class="wiz-step-dots">${dots}</div>
         ${isLast
           ? `<button class="wiz-btn wiz-btn-next wiz-btn-generate" onclick="copyFinal('style')">📋 ${t("generateBtn")}</button>`
           : `<button class="wiz-btn wiz-btn-next" onclick="nextStep()" ${!canNext?`disabled title="${t("genreRequired")}"`:""} >${t("next")}</button>`}

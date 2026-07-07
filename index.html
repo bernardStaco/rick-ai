@@ -721,6 +721,35 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
   border-color: #22c55e;
 }
 
+/* ── WIZARD SUB-STEPS ── */
+.wiz-sstabs {
+  display: flex; align-items: center; gap: 4px;
+  flex-wrap: wrap; margin-top: 10px;
+}
+.wiz-sstab {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 4px 11px;
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.wiz-sstab.active {
+  background: var(--sc); border-color: var(--sc); color: #fff;
+}
+.wiz-sstab.done {
+  background: rgba(34,197,94,.12); border-color: #22c55e; color: #22c55e;
+}
+.wiz-sstab:hover:not(.active) {
+  border-color: var(--sc); color: var(--text);
+}
+.wiz-sstab-sep { color: var(--text-muted); font-size: 10px; padding: 0 1px; }
+.wiz-pill-subpip {
+  font-size: 9px; font-weight: 800; color: var(--sc);
+  background: color-mix(in srgb, var(--sc) 15%, transparent);
+  border-radius: 8px; padding: 1px 5px; margin-top: 2px; line-height: 1.4;
+}
+.wiz-step-dots .wiz-sdot { cursor: pointer; }
+
 /* ── WIZARD VALIDATE STEP ── */
 .wiz-btn-generate {
   background: linear-gradient(135deg, #22c55e, #16a34a);

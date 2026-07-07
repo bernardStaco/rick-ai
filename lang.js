@@ -4,15 +4,27 @@
 
 const WIZARD_STEPS_DEF = [
   { id:'genre',       icon:'🎵', color:'#8b5cf6' },
-  { id:'mood',        icon:'✨', color:'#3b82f6' },
+  { id:'mood',        icon:'✨', color:'#3b82f6', substeps:[
+    { id:'mood_vibe',   label:'Vibe',      icon:'✨', key:'mood' },
+    { id:'mood_tempo',  label:'Tempo',     icon:'⏱️', key:'tempo' },
+    { id:'mood_meta',   label:'Meta Mood', icon:'🎭', key:'metamood' },
+  ]},
   { id:'instruments', icon:'🎹', color:'#14b8a6' },
-  { id:'vocals',      icon:'🎤', color:'#ec4899' },
-  { id:'production',  icon:'🎚️',  color:'#f97316' },
+  { id:'vocals',      icon:'🎤', color:'#ec4899', substeps:[
+    { id:'vocals_profile', label:'Profile', icon:'🎤', key:'vocbuild' },
+    { id:'vocals_lyrics',  label:'Lyrics',  icon:'📝', key:'lyrics' },
+  ]},
+  { id:'production',  icon:'🎚️',  color:'#f97316', substeps:[
+    { id:'prod_style',   label:'Style',   icon:'🎚️', key:'production' },
+    { id:'prod_meta',    label:'Meta',    icon:'⚙️',  key:'metaprod' },
+    { id:'prod_quality', label:'Quality', icon:'⭐',  key:'quality' },
+    { id:'prod_vocal',   label:'Vocal Tags', icon:'🎤', key:'vocal' },
+  ]},
   { id:'reference',   icon:'🎙️', color:'#06b6d4' },
   { id:'excludes',    icon:'🚫', color:'#ef4444' },
   { id:'style',       icon:'✏️',  color:'#84cc16' },
   { id:'validate',    icon:'✅', color:'#22c55e', optional:true },
-];
+]
 
 const LANG = {
   en: {
