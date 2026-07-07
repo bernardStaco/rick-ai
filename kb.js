@@ -341,6 +341,76 @@ const KB = {
       instruments:["electric guitar","synthesizer pads","bass guitar","congas","drum machine","trumpet","saxophone","accordion","flute","rhythm guitar","keyboard","vocal harmonies"],
       production:["lush tropical arrangement","layered synthesizer pads","Caribbean reverb","smooth vocal production","wide stereo mix","rich harmony stacking","danceable low-end","warm tropical EQ"],
       qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Female Vocal]"
+    },
+    {
+      id:"merengue", name:"Merengue", icon:"🪗", group:"Caribbean",
+      subgenres:["Merengue Típico","Merengue Urbano","Merengue de Orquesta","Merengue Mambo","Merengue Balada"],
+      moods:[
+        { primary:"Festive",    mods:["Energetic","Joyful","Vibrant","Celebratory"] },
+        { primary:"Romantic",   mods:["Passionate","Tender","Sensual","Warm"] },
+        { primary:"Playful",    mods:["Fun","Lively","Bubbly","Spirited"] },
+        { primary:"Nostalgic",  mods:["Traditional","Classic","Heartfelt","Sentimental"] }
+      ],
+      tempoRange:[120,160], defaultBPM:140,
+      instruments:["accordion","tambora","güira","saxophone","trumpet","bass guitar","congas","rhythm guitar","keyboard","trombone","piano","marimba"],
+      production:["bright brass section","punchy tambora groove","güira rhythmic texture","danceable low-end","live band feel","warm Latin mix","lush horn arrangement","Caribbean warmth"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"bachata", name:"Bachata", icon:"🌹", group:"Caribbean",
+      subgenres:["Traditional Bachata","Bachata Romántica","Bachata Moderna","Bachata Fusion","Bachata Sensual","Urban Bachata"],
+      moods:[
+        { primary:"Romantic",   mods:["Sensual","Intimate","Longing","Passionate"] },
+        { primary:"Melancholic",mods:["Heartbroken","Bittersweet","Tender","Nostalgic"] },
+        { primary:"Sensual",    mods:["Smooth","Sultry","Warm","Close"] },
+        { primary:"Festive",    mods:["Joyful","Uplifting","Vibrant","Celebratory"] }
+      ],
+      tempoRange:[100,130], defaultBPM:115,
+      instruments:["classical guitar","bass guitar","bongo","güira","maracas","electric guitar","requinto guitar","synthesizer","piano","rhythm guitar","violin"],
+      production:["warm guitar mix","syncopated bass groove","romantic string arrangement","intimate vocal production","soft reverb","close mic'd guitar","danceable rhythm","tropical warmth"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"soca", name:"Soca", icon:"🎉", group:"Caribbean",
+      subgenres:["Power Soca","Groovy Soca","Chutney Soca","Rapso","Parang Soca","Electro Soca"],
+      moods:[
+        { primary:"Euphoric",   mods:["Celebratory","Wild","Ecstatic","Energetic"] },
+        { primary:"Festive",    mods:["Carnival","Joyful","Infectious","High-Energy"] },
+        { primary:"Playful",    mods:["Fun","Cheeky","Carefree","Vibrant"] },
+        { primary:"Uplifting",  mods:["Motivating","Positive","Spirited","Bold"] }
+      ],
+      tempoRange:[130,170], defaultBPM:150,
+      instruments:["synthesizer","bass guitar","drum machine","brass section","steel pan","electric guitar","congas","trumpet","saxophone","keyboard","cowbell","hi-hat"],
+      production:["punchy soca bass","driving carnival rhythm","bright synth leads","festival-ready mix","heavy low-end","infectious groove","layered brass","energetic production"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"reggae", name:"Reggae", icon:"🌿", group:"Caribbean",
+      subgenres:["Roots Reggae","Lovers Rock","Rocksteady","Ska","Dub","One Drop","Steppers"],
+      moods:[
+        { primary:"Chill",      mods:["Laid-back","Peaceful","Serene","Mellow"] },
+        { primary:"Uplifting",  mods:["Spiritual","Conscious","Hopeful","Positive"] },
+        { primary:"Romantic",   mods:["Tender","Warm","Sweet","Devotional"] },
+        { primary:"Rebellious", mods:["Conscious","Raw","Determined","Grounded"] }
+      ],
+      tempoRange:[60,100], defaultBPM:80,
+      instruments:["electric guitar","bass guitar","drum kit","organ","piano","trumpet","saxophone","trombone","rhythm guitar","melodica","congas","steel guitar"],
+      production:["off-beat skank guitar","deep roots bass","warm organ fills","one-drop drum pattern","dub reverb","conscious vocal mix","analog warmth","spacious mix"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"dancehall", name:"Dancehall", icon:"🔊", group:"Caribbean",
+      subgenres:["Classic Dancehall","Digital Dancehall","Bashment","Ragga","Modern Dancehall","Afro Dancehall"],
+      moods:[
+        { primary:"Energetic",  mods:["Hype","Raw","Aggressive","Intense"] },
+        { primary:"Sensual",    mods:["Sexy","Provocative","Smooth","Bold"] },
+        { primary:"Festive",    mods:["Party","Vibrant","Infectious","Wild"] },
+        { primary:"Confident",  mods:["Swagger","Bold","Street","Powerful"] }
+      ],
+      tempoRange:[80,120], defaultBPM:95,
+      instruments:["drum machine","bass synthesizer","synthesizer","electric guitar","hi-hat","cowbell","sampler","808 bass","vocal chops","brass hits","digital percussion"],
+      production:["riddim beat","punchy 808 bass","digital dancehall production","bright synth stabs","heavy reverb on snare","DJ-ready mix","sharp hi-hats","club-ready low-end"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
     }
   ],
 

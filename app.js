@@ -27,7 +27,7 @@ let S = {
   open: { subgenre:true, mood:true, tempo:true, instruments:true, production:true, quality:true, vocal:true, metaprod:false, metamood:false, artistref:false, exclude:true, moreopts:true, vocbuild:false, custom:false, lyrics:true },
   theme: "light",
   vocalistProfile: null,
-  genreGroup: null,
+  genreGroup: "Caribbean",
   step: 1,
   lang: "en"
 };
@@ -963,7 +963,7 @@ function bindTempoSlider() {
 // ═══════════════════════════════════════════════════════════════
 function clearGenre() {
   S.genre = null; S.subgenre = ""; S.customSubgenre = "";
-  S.moods = []; S.bpm = null; S.instruments = []; S.production = []; S.genreGroup = null;
+  S.moods = []; S.bpm = null; S.instruments = []; S.production = []; S.genreGroup = "Caribbean";
   S.qualityTags = []; S.vocalTags = [];
   S.metaProductionTags = []; S.metaMoodTags = []; S.artistRef = "";
   S.vocalGender = null; S.weirdness = 50; S.styleInfluence = 50;
