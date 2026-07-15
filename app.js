@@ -2068,7 +2068,7 @@ function showSongLibrary() {
         </div>
         ${dbBanner}
         <div class="pb-toolbar">
-          <button class="btn btn-primary" onclick="pbNewSong()">+ Save Current</button>
+          <button class="btn btn-primary" onclick="pbNewSong()">＋ New Song</button>
         </div>
         <div class="pb-body" id="songs-list"></div>
       </div>
@@ -2082,27 +2082,47 @@ function pbRefreshList() {
   if (!el) return;
   const songs = dbGetSongs();
   if (!songs.length) {
-    el.innerHTML = '<div class="pb-empty">No saved songs yet. Click "+ Save Current" to save your work.</div>';
+    el.innerHTML = '<div class="pb-empty">No saved songs yet. Click "＋ New Song" to save your work.</div>';
     return;
   }
   el.innerHTML = songs.map(s => {
     const isActive = s.id === _songId;
+    const isDirtyActive = isActive && _isDirty();
     const ago = _timeAgo(new Date(s.updated));
     let st = {};
     try { st = JSON.parse(s.state); } catch(e) {}
-    const preview = [st.genre, st.subgenre || st.customSubgenre,
-      (st.moods||[]).slice(0,2).join(', ')].filter(Boolean).join(' · ') || '—';
+    // Rich preview
+    const genre = [st.genre, st.subgenre || st.customSubgenre].filter(Boolean).join(' › ');
+    const moodStr = (st.moods||[]).slice(0,3).join(', ');
+    const bpmStr  = st.bpm ? st.bpm + ' BPM' : '';
+    const keyStr  = st.songKey || '';
+    const instCount = ((st.instruments||[]).length + (st.customInstruments||[]).filter(Boolean).length);
+    const instStr = instCount ? instCount + ' instrument' + (instCount!==1?'s':'') : '';
+    const lyricCount = (st.lyricsSections||[]).length;
+    const lyricStr = lyricCount ? lyricCount + ' lyric section' + (lyricCount!==1?'s':'') : '';
+    const chips = [bpmStr, keyStr, instStr, lyricStr].filter(Boolean)
+      .map(c=>`<span class="song-chip">${esc(c)}</span>`).join('');
+    const statusBadge = isDirtyActive
+      ? '<span class="song-active-badge song-dirty-badge">● unsaved</span>'
+      : isActive ? '<span class="song-active-badge">editing</span>' : '';
     return `<div class="song-row${isActive?' active':''}">
-      <div class="song-row-info">
-        <div class="song-row-title">${esc(s.title)}${isActive?
-          ' <span class="song-active-badge">editing</span>':''}</div>
-        <div class="song-row-meta">${preview}</div>
-        <div class="song-row-time">${ago}</div>
+      <div class="song-row-main">
+        <div class="song-row-top">
+          <div class="song-row-title">${esc(s.title)} ${statusBadge}</div>
+          <div class="song-row-time">${ago}</div>
+        </div>
+        ${genre ? `<div class="song-row-genre">${esc(genre)}${moodStr?' · '+esc(moodStr):''}</div>` : ''}
+        ${chips ? `<div class="song-row-chips">${chips}</div>` : ''}
       </div>
       <div class="song-row-actions">
-        <button class="btn btn-sm" onclick="pbOpenSong('${s.id}','${esc(s.title)}')">Open</button>
-        <button class="btn btn-sm" onclick="pbOverwriteSong('${s.id}','${esc(s.title)}')">Save</button>
-        <button class="btn btn-sm btn-danger-ghost" onclick="pbDeleteSong('${s.id}','${esc(s.title)}')">Delete</button>
+        ${isActive
+          ? `<button class="btn btn-sm btn-update${isDirtyActive?' btn-update-dirty':''}" onclick="pbSaveCurrent();pbRefreshList()">
+              ${isDirtyActive?'💾 Update':'✓ Saved'}
+             </button>`
+          : `<button class="btn btn-sm btn-open-song" onclick="pbOpenSong('${s.id}','${esc(s.title)}')">▶ Open</button>`
+        }
+        <button class="btn btn-sm" onclick="pbRenameSong('${s.id}','${esc(s.title)}')" title="Rename">✏</button>
+        <button class="btn btn-sm btn-danger-ghost" onclick="pbDeleteSong('${s.id}','${esc(s.title)}')" title="Delete">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -2135,6 +2155,7 @@ function pbSaveCurrent() {
   if (db) { db.run('UPDATE songs SET state=?,updated=? WHERE id=?',[state,now,_songId]); _dbPersist(); }
   else { const a=JSON.parse(localStorage.getItem(LS_SONGS)||'[]'); const i=a.findIndex(s=>s.id===_songId); if(i>=0) a[i]=Object.assign({},a[i],{state,updated:now}); localStorage.setItem(LS_SONGS,JSON.stringify(a)); }
   _savedHash=_stateHash(); patchCloudBtn();
+  pbRefreshList();
   pbToast('✓ Saved');
 }
 
@@ -2170,6 +2191,16 @@ function pbDeleteSong(id, title) {
   else { const a=JSON.parse(localStorage.getItem(LS_SONGS)||'[]').filter(s=>s.id!==id); localStorage.setItem(LS_SONGS,JSON.stringify(a)); }
   if (id===_songId) { _songId=null; _songTitle=''; patchCloudBtn(); }
   pbRefreshList(); pbToast('Deleted: '+title);
+}
+
+function pbRenameSong(id, currentTitle) {
+  const newTitle = prompt('Rename song:', currentTitle);
+  if (!newTitle || newTitle.trim() === currentTitle) return;
+  const t = newTitle.trim();
+  if (db) { db.run('UPDATE songs SET title=? WHERE id=?',[t,id]); _dbPersist(); }
+  else { const a=JSON.parse(localStorage.getItem(LS_SONGS)||'[]'); const i=a.findIndex(s=>s.id===id); if(i>=0){a[i].title=t;localStorage.setItem(LS_SONGS,JSON.stringify(a));} }
+  if (id===_songId) { _songTitle=t; patchCloudBtn(); }
+  pbRefreshList(); pbToast('✓ Renamed: '+t);
 }
 
 function closeModal(id) {
@@ -2539,7 +2570,7 @@ function wizardHTML() {
       </div>
       <div class="wiz-footer">
         <button class="wiz-btn wiz-btn-restart" onclick="if(confirm(t('restartBtn')+'?'))clearGenre()" title="Restart">&#8635;</button>
-        <button class="wiz-btn wiz-btn-save" onclick="quickSavePreset()" title="Save preset">&#128190;</button>
+        <button class="wiz-btn wiz-btn-save" onclick="pbSaveCurrent()" title="${_songId?'Update song':'Save song'}">&#128190;</button>
         ${(S._validateUnlocked && S.genre) ? `<button class="wiz-btn wiz-btn-validate" onclick="showValidate()">&#9989; Validate</button>` : `<div></div>`}
         ${isFirst
           ? `<div></div>`
