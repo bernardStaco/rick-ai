@@ -1232,4 +1232,106 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
   display: flex; flex-direction: column; gap: 2px;
   padding: 10px 14px; border-radius: 10px;
   border: 1.5px solid var(--border); background: var(--surface2);
-  cursor: p
+  cursor: pointer; font-family: inherit; text-align: left;
+  transition: all .15s;
+}
+.chord-chip:hover {
+  border-color: var(--l4);
+  background: color-mix(in srgb, var(--l4) 8%, var(--surface));
+}
+.chord-chip.active {
+  border-color: var(--l4);
+  background: color-mix(in srgb, var(--l4) 15%, var(--surface));
+}
+.chord-chip-label {
+  font-size: 14px; font-weight: 800; color: var(--text);
+  font-family: monospace; letter-spacing: .04em;
+}
+.chord-chip.active .chord-chip-label { color: var(--l4); }
+.chord-chip-hint {
+  font-size: 12px; color: var(--text-dim); font-family: system-ui, sans-serif;
+}
+.chord-custom-row { margin-bottom: 10px; }
+.chord-custom-input { width: 100%; }
+.chord-preview {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  padding: 10px 14px; background: var(--surface2);
+  border: 1px solid var(--l4); border-radius: 10px;
+  margin-top: 6px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="header-inner">
+    <div class="header-logo">🎵</div>
+    <div class="header-text">
+      <h1>Rick AI</h1>
+      <p id="app-subtitle">RickAI Engine — Générateur de prompts précis pour Suno v5</p>
+    </div>
+    <div class="header-actions">
+      <div class="lang-toggle">
+        <button class="lang-btn" id="lang-en" onclick="setLang('en')" title="English — click to set as default">EN</button>
+        <button class="lang-btn" id="lang-fr" onclick="setLang('fr')" title="Français — cliquer pour définir par défaut">FR</button>
+      </div>
+      <div class="theme-row">
+        <div id="theme-swatches" style="display:flex;gap:4px"></div>
+      </div>
+      <button class="btn btn-cloud" id="cloud-btn" onclick="showSongLibrary()">💾 Songs</button>
+      <button class="btn" onclick="openPresets()">⭐ Presets</button>
+      <button class="btn btn-ghost" onclick="showIntro()" title="Guide / Aide" style="font-size:15px;padding:6px 10px;">?</button>
+      <button class="btn" onclick="importJSON()">⬆ Import</button>
+      <div class="export-wrap">
+        <button class="btn" onclick="toggleExportMenu(event)">⬇ Export ▾</button>
+        <div class="export-dd" id="export-dd">
+          <button onclick="exportJSON();closeExportMenu()">📄 Export JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="builder-col"></div>
+  <div id="preview-col"></div>
+</div>
+
+<!-- Presets Modal -->
+<div class="preset-modal-backdrop" id="preset-backdrop" onclick="if(event.target===this)closePresets()">
+  <div class="preset-modal">
+    <h3>⭐ Saved Presets</h3>
+    <div class="preset-save-row">
+      <input class="text-input" id="preset-name-input" type="text" placeholder="Preset name…">
+      <button class="btn" onclick="savePreset()">Save Current</button>
+    </div>
+    <div class="preset-list" id="preset-list"></div>
+    <div style="text-align:right;margin-top:14px">
+      <button class="btn" onclick="closePresets()">Close</button>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">
+  <span class="app-footer-name">Rick AI</span>
+  <span class="app-footer-sep">·</span>
+  <span class="app-footer-engine">RickAI Engine</span>
+  <span class="app-footer-sep">·</span>
+  <span class="app-footer-version" id="app-version-lbl"></span>
+</footer>
+
+<script src="kb.js"></script>
+<script src="lang.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () =>
+        navigator.serviceWorker.register('./sw.js')
+          .catch(e => console.warn('SW:', e))
+      );
+    }
+  </script>
+</body>
+</html>
