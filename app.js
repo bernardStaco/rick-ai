@@ -535,7 +535,7 @@ function keyAndChordsHTML() {
     const sel  = noteRoot === n;
     const isBlack = n.includes('#');
     return `<button class="key-note-btn${sel?' active':''}${isBlack?' black-key':''}"
-      onclick="setNoteRoot(${sel?"null":"\\'"+n+"\\'"})">
+      onclick="setNoteRoot(${sel?"null":"'"+n+"'"})">
       <span class="key-note-lbl">${lbl}</span>
     </button>`;
   }).join('');
@@ -2563,3 +2563,4 @@ const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+
 if (!localStorage.getItem('rickai_intro_seen')) showIntro();
   patchCloudBtn();
 initDB(); // SQLite + IndexedDB init (async, non-blocking)
+    

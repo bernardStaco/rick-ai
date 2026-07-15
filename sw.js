@@ -1,5 +1,5 @@
 // Rick AI — Service Worker
-const CACHE = "rickai-v6";
+const CACHE = "rickai-v7";
 const ASSETS = ["./index.html","./app.js","./lang.js","./kb.js","./manifest.json","./config.js","./github-sync.js"];
 
 self.addEventListener("install", e =>
