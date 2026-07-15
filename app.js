@@ -243,9 +243,9 @@ function genrePickerHTML() {
     return `
       <div class="card">
         <div class="layer-hdr" style="--layer-color:var(--l1)">
-          <div class="layer-badge">L1</div>
+          <div class="layer-badge" style="font-size:18px">🎵</div>
           <div class="layer-title">${t("genreAnchorTitle")}</div>
-          <div class="check-badge">✓</div>
+          <div class="check-badge" style="color:var(--l3);font-size:18px">✓</div>
         </div>
         <div class="genre-sel-row">
           <div class="genre-sel-icon">${g.icon}</div>
@@ -347,10 +347,12 @@ function genrePickerHTML() {
 
   return `
     <div class="card">
-      <div class="layer-hdr" style="--layer-color:var(--l1)">
-        <div class="layer-badge">L1</div>
-        <div class="layer-title">Genre Anchor</div>
-        <div class="layer-hint">Choose your main genre — anchors the entire prompt</div>
+      <div class="genre-welcome-banner">
+        <div class="genre-welcome-icon">🎵</div>
+        <div class="genre-welcome-text">
+          <div class="genre-welcome-title">${t("section.genre.title")}</div>
+          <div class="genre-welcome-hint">${t("genrePickLabel")}</div>
+        </div>
       </div>
       <div class="gft-tabs-row">${tabs}</div>
       <div class="gpc-body">${gridHTML}</div>
