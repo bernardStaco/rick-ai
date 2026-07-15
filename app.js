@@ -880,6 +880,7 @@ function lyricsSectionHTML(sec, i) {
         <div class="lyrics-sec-controls" onclick="event.stopPropagation()">
           ${i>0?`<button class="btn-icon" onclick="moveSection(${i},-1)" title="Move up">↑</button>`:""}
           ${i<S.lyricsSections.length-1?`<button class="btn-icon" onclick="moveSection(${i},1)" title="Move down">↓</button>`:""}
+          <button class="btn-icon btn-clone" onclick="cloneSection(${i})" title="Clone section">⧉</button>
           <span class="lsec-chevron${open?" open":""}">▾</span>
           <button class="btn-icon del" onclick="removeSection(${i})" title="Remove">✕</button>
         </div>
@@ -1240,6 +1241,12 @@ function addSection(tag) {
   render();
 }
 function removeSection(i) { S.lyricsSections.splice(i, 1); render(); }
+function cloneSection(i) {
+  const src = S.lyricsSections[i];
+  const copy = { id: uid(), structTag: src.structTag, deliveryTags: [...src.deliveryTags], text: src.text, open: true };
+  S.lyricsSections.splice(i + 1, 0, copy);
+  render();
+}
 function moveSection(i, dir) {
   const j = i + dir;
   if (j < 0 || j >= S.lyricsSections.length) return;
@@ -2553,13 +2560,4 @@ const _savedTheme = localStorage.getItem("sunoTheme");
 if (_savedTheme && THEMES[_savedTheme]) S.theme = _savedTheme;
 const _savedLang = localStorage.getItem("sunoLang");
 if (_savedLang && LANG[_savedLang]) S.lang = _savedLang;
-const _sub = document.getElementById("app-subtitle");
-if (_sub) _sub.textContent = t("subtitle");
-applyTheme(S.theme);
-render();
-
-// version label
-const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
-if (!localStorage.getItem('rickai_intro_seen')) showIntro();
-  patchCloudBtn();
-initDB(); // SQLite + IndexedDB init (async, non-blocking)
+const _sub = document.getEleme
