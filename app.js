@@ -2591,4 +2591,13 @@ const _savedTheme = localStorage.getItem("sunoTheme");
 if (_savedTheme && THEMES[_savedTheme]) S.theme = _savedTheme;
 const _savedLang = localStorage.getItem("sunoLang");
 if (_savedLang && LANG[_savedLang]) S.lang = _savedLang;
-const _sub = document.getEleme
+const _sub = document.getElementById("app-subtitle");
+if (_sub) _sub.textContent = t("subtitle");
+applyTheme(S.theme);
+render();
+
+// version label
+const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
+if (!localStorage.getItem('rickai_intro_seen')) showIntro();
+  patchCloudBtn();
+initDB(); // SQLite + IndexedDB init (async, non-blocking)
