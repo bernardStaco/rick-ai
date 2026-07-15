@@ -26,6 +26,7 @@ let S = {
   theme: "studio",
   vocalistProfile: null,
   genreGroup: "Caribbean",
+  songKey: null, chordProgression: "", customChordProgression: "",
   step: 1, substep: 1, _validateUnlocked: false,
   lang: "en"
 };
@@ -104,6 +105,9 @@ function assemble() {
   const moods = [...S.moods, ...(S.customMood ? [S.customMood] : [])];
   if (moods.length) parts.push(moods.join(", "));
   if (S.bpm) parts.push(`${S.bpm} BPM`);
+  if (S.songKey) parts.push(`key of ${S.songKey}`);
+  const _chord = S.chordProgression === '__custom__' ? S.customChordProgression.trim() : S.chordProgression;
+  if (_chord) parts.push(`chord progression: ${_chord}`);
   const inst = [...S.instruments, ...S.customInstruments.filter(Boolean)];
   if (inst.length) parts.push(inst.join(", "));
   const prod = [...S.production, ...S.customProduction.filter(Boolean)];
@@ -489,6 +493,108 @@ function instrumentsHTML() {
   </div>`;
   return sectionCard("instruments","L4","","Instrument Stack","First listed = lead voice — order by prominence","var(--l4)",smInst(),body);
 }
+
+// ── KEY & CHORD PROGRESSION ───────────────────────────────────
+const NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const NOTE_LABELS = ['C','C♯\nD♭','D','D♯\nE♭','E','F','F♯\nG♭','G','G♯\nA♭','A','A♯\nB♭','B'];
+const CHORD_PRESETS = [
+  { id:'I–V–vi–IV',    label:'I – V – vi – IV',   hint:'Pop anthem — used in countless hits' },
+  { id:'I–IV–V',       label:'I – IV – V',         hint:'Blues & rock foundation' },
+  { id:'I–vi–IV–V',    label:'I – vi – IV – V',    hint:'50s doo-wop, country ballad' },
+  { id:'ii–V–I',       label:'ii – V – I',         hint:'Jazz standard resolution' },
+  { id:'i–VII–VI–VII', label:'i – VII – VI – VII', hint:'Rock & metal power loop' },
+  { id:'i–VI–III–VII', label:'i – VI – III – VII', hint:'Epic cinematic / dramatic minor' },
+  { id:'vi–IV–I–V',    label:'vi – IV – I – V',    hint:'Minor-feel pop & R&B' },
+  { id:'I–IV–vi–V',    label:'I – IV – vi – V',    hint:'Uplifting anthemic' },
+  { id:'I–iii–IV–V',   label:'I – iii – IV – V',   hint:'Worship & ambient swells' },
+  { id:'I–ii–IV–I',    label:'I – ii – IV – I',    hint:'Soul & gospel groove' },
+];
+
+function setNoteRoot(note) {
+  const quality = S.songKey ? (S.songKey.endsWith('minor') ? 'minor' : 'major') : 'major';
+  S.songKey = note ? `${note} ${quality}` : null;
+  render();
+}
+function setKeyQuality(q) {
+  const root = S.songKey ? S.songKey.split(' ')[0] : null;
+  S.songKey = root ? `${root} ${q}` : null;
+  render();
+}
+function setChordPreset(id) {
+  S.chordProgression = S.chordProgression === id ? '' : id;
+  render();
+}
+
+function keyAndChordsHTML() {
+  const noteRoot = S.songKey ? S.songKey.split(' ')[0] : null;
+  const quality  = S.songKey ? (S.songKey.endsWith('minor') ? 'minor' : 'major') : 'major';
+  const isCustomChord = S.chordProgression === '__custom__';
+
+  const noteGrid = NOTES.map((n, i) => {
+    const lbl = NOTE_LABELS[i].replace('\n','<br>');
+    const sel  = noteRoot === n;
+    const isBlack = n.includes('#');
+    return `<button class="key-note-btn${sel?' active':''}${isBlack?' black-key':''}"
+      onclick="setNoteRoot(${sel?"null":"\\'"+n+"\\'"})">
+      <span class="key-note-lbl">${lbl}</span>
+    </button>`;
+  }).join('');
+
+  const qualityRow = S.songKey ? `
+    <div class="key-quality-row">
+      <button class="key-quality-btn${quality==='major'?' active':''}" onclick="setKeyQuality('major')">
+        ☀️ ${t('keyMajor')}
+      </button>
+      <button class="key-quality-btn${quality==='minor'?' active':''}" onclick="setKeyQuality('minor')">
+        🌙 ${t('keyMinor')}
+      </button>
+    </div>` : '';
+
+  const keyPreview = S.songKey
+    ? `<div class="key-preview">🎵 <strong>${S.songKey}</strong></div>`
+    : `<div class="key-preview key-preview-empty">Tap a note to set the key</div>`;
+
+  const chordChips = CHORD_PRESETS.map(cp => `
+    <button class="chord-chip${S.chordProgression===cp.id?' active':''}"
+      onclick="setChordPreset('${cp.id}')"
+      data-tip="${esc(cp.hint)}">
+      <span class="chord-chip-label">${cp.label}</span>
+      <span class="chord-chip-hint">${cp.hint}</span>
+    </button>`).join('');
+
+  return `
+    <div class="card key-card">
+      <div class="layer-hdr no-acc" style="--layer-color:var(--l3)">
+        <div class="layer-badge" style="background:var(--l3)">🎼</div>
+        <div class="layer-title">${t('keyLabel')}</div>
+        ${S.songKey ? `<div class="check-badge" style="color:var(--l3)">✓</div>` : '<div class="layer-hint">optional</div>'}
+      </div>
+      <div class="key-section">
+        <div class="key-note-grid">${noteGrid}</div>
+        ${qualityRow}
+        ${keyPreview}
+      </div>
+    </div>
+    <div class="card key-card" style="margin-top:12px">
+      <div class="layer-hdr no-acc" style="--layer-color:var(--l4)">
+        <div class="layer-badge" style="background:var(--l4)">🎸</div>
+        <div class="layer-title">${t('chordLabel')}</div>
+        ${S.chordProgression ? `<div class="check-badge" style="color:var(--l4)">✓</div>` : '<div class="layer-hint">optional</div>'}
+      </div>
+      <div class="chord-section">
+        <div class="chord-chip-grid">${chordChips}</div>
+        <div class="chord-custom-row">
+          <input class="text-input chord-custom-input"
+            value="${esc(S.customChordProgression)}"
+            placeholder="${esc(t('chordCustomPh'))}"
+            oninput="S.customChordProgression=this.value; S.chordProgression=this.value?'__custom__':(S.chordProgression==='__custom__'?'':S.chordProgression); render()">
+        </div>
+        ${S.chordProgression&&S.chordProgression!=='__custom__'?`<div class="chord-preview">🎸 <strong>${S.chordProgression}</strong></div>`:''}
+        ${isCustomChord&&S.customChordProgression?`<div class="chord-preview">🎸 <strong>${esc(S.customChordProgression)}</strong></div>`:''}
+      </div>
+    </div>`;
+}
+
 
 function productionHTML() {
   const g = G();
@@ -943,6 +1049,7 @@ function clearGenre() {
   S.qualityTags = []; S.vocalTags = [];
   S.metaProductionTags = []; S.metaMoodTags = []; S.artistRef = "";
   S.vocalGender = null;
+  S.songKey = null; S.chordProgression = ""; S.customChordProgression = "";
   S.step = 1; S.substep = 1; S._validateUnlocked = false;
   render();
 }
@@ -2305,6 +2412,7 @@ function scrollBuilderTop() {
 // Map subId → S.open key so each card is expanded when navigated to
 const _OPEN_MAP = {
   mood_vibe:'mood', mood_tempo:'tempo', mood_meta:'metamood',
+  inst_instruments:'instruments',
   vocals_profile:'vocbuild', vocals_lyrics:'lyrics',
   prod_style:'production', prod_meta:'metaprod', prod_quality:'quality', prod_vocal:'vocal',
   reference:'artistref', excludes:'exclude', style:'custom',
@@ -2323,6 +2431,8 @@ function wizardStepContent(stepDef, substep) {
     case "mood_tempo":     return tempoHTML();
     case "mood_meta":      return metaMoodHTML();
     case "instruments":    return instrumentsHTML();
+    case "inst_instruments": return instrumentsHTML();
+    case "inst_key":         return keyAndChordsHTML();
     case "vocals_profile": return vocalistStepHTML();
     case "vocals_lyrics":  return lyricsOnlyHTML();
     case "prod_style":     return productionHTML();

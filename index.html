@@ -1131,6 +1131,97 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
   color: var(--text-muted); font-size: 13px; font-style: italic;
 }
 
+/* ── KEY & CHORD PROGRESSION ── */
+.key-card { margin-bottom: 0; }
+.key-section { padding: 16px 16px 14px; }
+.key-note-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.key-note-btn {
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px 4px; border-radius: 10px; border: 1.5px solid var(--border);
+  background: var(--surface2); cursor: pointer; font-family: inherit;
+  font-size: 13px; font-weight: 700; color: var(--text);
+  line-height: 1.25; text-align: center;
+  transition: all .15s;
+  min-height: 54px;
+}
+.key-note-btn.black-key {
+  background: var(--surface3);
+  border-color: color-mix(in srgb, var(--border) 80%, var(--l3) 20%);
+}
+.key-note-btn:hover {
+  border-color: var(--l3);
+  background: color-mix(in srgb, var(--l3) 10%, var(--surface));
+}
+.key-note-btn.active {
+  background: color-mix(in srgb, var(--l3) 20%, var(--surface));
+  border-color: var(--l3); color: var(--l3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--l3) 30%, transparent);
+}
+.key-note-lbl { pointer-events: none; white-space: pre-line; }
+.key-quality-row {
+  display: flex; gap: 10px; margin-bottom: 12px;
+}
+.key-quality-btn {
+  flex: 1; padding: 10px 12px; border-radius: 24px;
+  border: 1.5px solid var(--border); background: var(--surface2);
+  color: var(--text-dim); font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.key-quality-btn.active {
+  border-color: var(--l3); color: var(--l3);
+  background: color-mix(in srgb, var(--l3) 15%, var(--surface));
+}
+.key-preview {
+  font-size: 16px; font-weight: 700; color: var(--text);
+  padding: 10px 14px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.key-preview-empty {
+  font-size: 14px; font-weight: 400; color: var(--text-muted);
+  font-style: italic;
+}
+.chord-section { padding: 14px 16px; }
+.chord-chip-grid {
+  display: flex; flex-direction: column; gap: 7px;
+  margin-bottom: 14px;
+}
+.chord-chip {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 10px 14px; border-radius: 10px;
+  border: 1.5px solid var(--border); background: var(--surface2);
+  cursor: pointer; font-family: inherit; text-align: left;
+  transition: all .15s;
+}
+.chord-chip:hover {
+  border-color: var(--l4);
+  background: color-mix(in srgb, var(--l4) 8%, var(--surface));
+}
+.chord-chip.active {
+  border-color: var(--l4);
+  background: color-mix(in srgb, var(--l4) 15%, var(--surface));
+}
+.chord-chip-label {
+  font-size: 14px; font-weight: 800; color: var(--text);
+  font-family: monospace; letter-spacing: .04em;
+}
+.chord-chip.active .chord-chip-label { color: var(--l4); }
+.chord-chip-hint {
+  font-size: 12px; color: var(--text-dim); font-family: system-ui, sans-serif;
+}
+.chord-custom-row { margin-bottom: 10px; }
+.chord-custom-input { width: 100%; }
+.chord-preview {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  padding: 10px 14px; background: var(--surface2);
+  border: 1px solid var(--l4); border-radius: 10px;
+  margin-top: 6px;
+}
+
 /* ── APP FOOTER ── */
 .app-footer {
   text-align: center; padding: 14px 20px;
@@ -1157,81 +1248,4 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 
 /* ── LANG TOGGLE ── */
 .lang-toggle { display: flex; gap: 3px; align-items: center; }
-.lang-btn { padding: 4px 10px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; font-family: inherit; letter-spacing: .03em; }
-.lang-btn.active { background: linear-gradient(135deg, var(--l1), var(--l2)); border-color: var(--l1); color: #fff; box-shadow: 0 2px 8px rgba(59,130,246,.3); }
-.lang-btn:hover:not(.active) { border-color: var(--text-dim); color: var(--text); }
-</style>
-</head>
-<body>
-
-<div class="app-header">
-  <div class="header-inner">
-    <div class="header-logo">🎵</div>
-    <div class="header-text">
-      <h1>Rick AI</h1>
-      <p id="app-subtitle">RickAI Engine — Générateur de prompts précis pour Suno v5</p>
-    </div>
-    <div class="header-actions">
-      <div class="lang-toggle">
-        <button class="lang-btn" id="lang-en" onclick="setLang('en')" title="English — click to set as default">EN</button>
-        <button class="lang-btn" id="lang-fr" onclick="setLang('fr')" title="Français — cliquer pour définir par défaut">FR</button>
-      </div>
-      <div class="theme-row">
-        <div id="theme-swatches" style="display:flex;gap:4px"></div>
-      </div>
-      <button class="btn btn-cloud" id="cloud-btn" onclick="showSongLibrary()">💾 Songs</button>
-      <button class="btn" onclick="openPresets()">⭐ Presets</button>
-      <button class="btn btn-ghost" onclick="showIntro()" title="Guide / Aide" style="font-size:15px;padding:6px 10px;">?</button>
-      <button class="btn" onclick="importJSON()">⬆ Import</button>
-      <div class="export-wrap">
-        <button class="btn" onclick="toggleExportMenu(event)">⬇ Export ▾</button>
-        <div class="export-dd" id="export-dd">
-          <button onclick="exportJSON();closeExportMenu()">📄 Export JSON</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="main">
-  <div id="builder-col"></div>
-  <div id="preview-col"></div>
-</div>
-
-<!-- Presets Modal -->
-<div class="preset-modal-backdrop" id="preset-backdrop" onclick="if(event.target===this)closePresets()">
-  <div class="preset-modal">
-    <h3>⭐ Saved Presets</h3>
-    <div class="preset-save-row">
-      <input class="text-input" id="preset-name-input" type="text" placeholder="Preset name…">
-      <button class="btn" onclick="savePreset()">Save Current</button>
-    </div>
-    <div class="preset-list" id="preset-list"></div>
-    <div style="text-align:right;margin-top:14px">
-      <button class="btn" onclick="closePresets()">Close</button>
-    </div>
-  </div>
-</div>
-
-<footer class="app-footer">
-  <span class="app-footer-name">Rick AI</span>
-  <span class="app-footer-sep">·</span>
-  <span class="app-footer-engine">RickAI Engine</span>
-  <span class="app-footer-sep">·</span>
-  <span class="app-footer-version" id="app-version-lbl"></span>
-</footer>
-
-<script src="kb.js"></script>
-<script src="lang.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
-  <script src="app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () =>
-        navigator.serviceWorker.register('./sw.js')
-          .catch(e => console.warn('SW:', e))
-      );
-    }
-  </script>
-</body>
-</html>
+.lang-btn { padding: 4px 10px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; font-family: inherit; letter-spa
