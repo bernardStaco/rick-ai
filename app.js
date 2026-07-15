@@ -2563,4 +2563,3 @@ const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+
 if (!localStorage.getItem('rickai_intro_seen')) showIntro();
   patchCloudBtn();
 initDB(); // SQLite + IndexedDB init (async, non-blocking)
-    
