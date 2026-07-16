@@ -1,5 +1,6 @@
 // Rick AI
 const APP_VERSION = "1.0.0";
+const GIT_HASH = "a12bd7";
 
 // KB loaded from kb.js
 void KB; // reference to confirm kb.js loaded
@@ -2633,7 +2634,7 @@ applyTheme(S.theme);
 render();
 
 // version label
-const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION;
+const _vl=document.getElementById('app-version-lbl');if(_vl)_vl.textContent='v'+APP_VERSION+' · '+GIT_HASH;
 if (!localStorage.getItem('rickai_intro_seen')) showIntro();
   patchCloudBtn();
 initDB(); // SQLite + IndexedDB init (async, non-blocking)
