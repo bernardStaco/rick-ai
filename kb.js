@@ -273,7 +273,7 @@ const KB = {
       qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
     },
     {
-      id:"reggaeton", name:"Reggaeton", icon:"🌴", group:"Latin / World",
+      id:"reggaeton", name:"Reggaeton", icon:"🌴", group:"Latin",
       subgenres:["Modern Reggaeton","Urban Reggaeton","Romantic Reggaeton","Perreo","Trap Latino","Dembow"],
       moods:[
         { primary:"Energetic", mods:["Sensual","Party","Festive","Danceable"] },
@@ -286,20 +286,7 @@ const KB = {
       production:["punchy compression","bright EQ","danceable mix","urban sound","heavy low-end","tight groove","club-ready master"],
       qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null
     },
-    {
-      id:"afrobeats", name:"Afrobeats", icon:"🌍", group:"Latin / World",
-      subgenres:["Afropop","Afro-Fusion","Highlife","Afro R&B","Amapiano","Afroswing"],
-      moods:[
-        { primary:"Joyful",     mods:["Celebratory","Uplifting","Festive","Vibrant"] },
-        { primary:"Sensual",    mods:["Smooth","Flowing","Groovy","Warm"] },
-        { primary:"Energetic",  mods:["Danceable","Infectious","Lively","Buoyant"] },
-        { primary:"Melancholic",mods:["Yearning","Nostalgic","Emotional","Tender"] }
-      ],
-      tempoRange:[90,115], defaultBPM:100,
-      instruments:["talking drum","bass guitar","electric guitar","shaker","brass section","synthesizer","log drum","kora (sparse)"],
-      production:["warm mix","live percussion feel","rhythmic energy","layered percussion","bright EQ","organic warmth","afro groove"],
-      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
-    },
+
     {
       id:"kompa", name:"Kompa", icon:"🎷", group:"Caribbean",
       subgenres:["Kompa Dirèk","Kompa Gouyad","Mini Jazz","Romantic Kompa","Modern Kompa","Kompa Fusion","Konpa Zouk"],
@@ -411,6 +398,163 @@ const KB = {
       instruments:["drum machine","bass synthesizer","synthesizer","electric guitar","hi-hat","cowbell","sampler","808 bass","vocal chops","brass hits","digital percussion"],
       production:["riddim beat","punchy 808 bass","digital dancehall production","bright synth stabs","heavy reverb on snare","DJ-ready mix","sharp hi-hats","club-ready low-end"],
       qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    // ── RASIN (Caribbean) ──────────────────────────────────────
+    {
+      id:"rasin", name:"Rasin", icon:"🥁", group:"Caribbean",
+      subgenres:["Mizik Rasin","Roots Rock","Rasin Électrique","Vodou Rock","Traditional Rasin","Rasin Fusion"],
+      moods:[
+        { primary:"Spiritual",  mods:["Ancestral","Mystical","Powerful","Ceremonial"] },
+        { primary:"Rebellious", mods:["Defiant","Raw","Conscious","Grounded"] },
+        { primary:"Energetic",  mods:["Hypnotic","Rhythmic","Trance-like","Intense"] },
+        { primary:"Melancholic",mods:["Reflective","Nostalgic","Soulful","Emotional"] }
+      ],
+      tempoRange:[80,140], defaultBPM:110,
+      instruments:["rada drums","kata drum","tanbou baka","bamboo flute","electric guitar","bass guitar","ogan (iron bell)","congas","vocal chants","rara horn","synthesizer"],
+      production:["raw roots energy","live percussion mix","ceremonial ambiance","organic warmth","layered drum patterns","spiritual reverb","grounded low-end","authentic acoustic feel"],
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[Male Vocal]"
+    },
+    // ── LATIN ────────────────────────────────────────────────
+    {
+      id:"salsa", name:"Salsa", icon:"💃", group:"Latin",
+      subgenres:["Salsa Dura","Salsa Romántica","Salsa Choke","Timba","Salsa Cubana","Salsa Brava","New York Salsa"],
+      moods:[
+        { primary:"Festive",    mods:["Energetic","Vibrant","Celebratory","Passionate"] },
+        { primary:"Romantic",   mods:["Sensual","Warm","Tender","Fiery"] },
+        { primary:"Euphoric",   mods:["Joyful","Uplifting","Infectious","Danceable"] },
+        { primary:"Nostalgic",  mods:["Classic","Golden-Era","Sentimental","Heartfelt"] }
+      ],
+      tempoRange:[160,220], defaultBPM:185,
+      instruments:["clave","congas","bongo","timbales","bass guitar","piano","trumpet","trombone","saxophone","rhythm guitar","cowbell","güiro","chorus vocals"],
+      production:["punchy brass arrangement","clave-driven mix","bright horn section","danceable rhythm","warm Latin mix","live band feel","rich percussion layer","New York sound"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"cumbia", name:"Cumbia", icon:"🪘", group:"Latin",
+      subgenres:["Colombian Cumbia","Cumbia Sonidera","Cumbia Villera","Cumbia Pop","Chicha","Andean Cumbia","Mexican Cumbia"],
+      moods:[
+        { primary:"Festive",    mods:["Joyful","Infectious","Vibrant","Lively"] },
+        { primary:"Nostalgic",  mods:["Folk","Traditional","Earthy","Warm"] },
+        { primary:"Romantic",   mods:["Sweet","Tender","Flowing","Smooth"] },
+        { primary:"Playful",    mods:["Fun","Carefree","Bubbly","Spirited"] }
+      ],
+      tempoRange:[80,120], defaultBPM:100,
+      instruments:["gaita flute","tambor alegre","bass drum","accordion","bass guitar","maracas","electric guitar","synthesizer","congas","tuba"],
+      production:["organic folk warmth","danceable low-end","live percussion feel","bright accordion mix","traditional groove","earthy reverb","Latin rhythm texture","authentic folk energy"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"vallenato", name:"Vallenato", icon:"🪗", group:"Latin",
+      subgenres:["Paseo","Merengue Vallenato","Son","Porro","Vallenato Moderno","Vallenato Pop"],
+      moods:[
+        { primary:"Romantic",   mods:["Heartfelt","Tender","Longing","Passionate"] },
+        { primary:"Nostalgic",  mods:["Sentimental","Folk","Traditional","Warm"] },
+        { primary:"Festive",    mods:["Joyful","Celebratory","Vibrant","Spirited"] },
+        { primary:"Melancholic",mods:["Bittersweet","Emotional","Yearning","Reflective"] }
+      ],
+      tempoRange:[80,130], defaultBPM:105,
+      instruments:["accordion","caja drum","guacharaca","bass guitar","piano","rhythm guitar","synthesizer","brass section"],
+      production:["warm accordion lead","folk percussion feel","Colombian warmth","intimate vocal mix","authentic roots sound","danceable groove","lush harmony layers"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"bossanova", name:"Bossa Nova", icon:"🎸", group:"Latin",
+      subgenres:["Classic Bossa Nova","Modern Bossa Nova","Bossa Nova Jazz","Samba-Jazz","Bossa Lounge","Neo-Bossa"],
+      moods:[
+        { primary:"Chill",      mods:["Laid-back","Smooth","Dreamy","Sophisticated"] },
+        { primary:"Romantic",   mods:["Tender","Intimate","Warm","Breezy"] },
+        { primary:"Melancholic",mods:["Wistful","Bittersweet","Nostalgic","Yearning"] },
+        { primary:"Serene",     mods:["Peaceful","Airy","Gentle","Flowing"] }
+      ],
+      tempoRange:[60,130], defaultBPM:90,
+      instruments:["nylon string guitar","upright bass","light brushed drums","piano","flute","muted trumpet","vibraphone","vocal harmonies"],
+      production:["intimate close-mic guitar","gentle brush kit","warm jazz reverb","sophisticated arrangement","soft vocal presence","Rio atmosphere","spacious mix","breezy production"],
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[Female Vocal]"
+    },
+    {
+      id:"samba", name:"Samba", icon:"🥁", group:"Latin",
+      subgenres:["Samba de Roda","Samba-Enredo","Pagode","Samba-Canção","Samba Reggae","Axé","Samba Funk"],
+      moods:[
+        { primary:"Festive",    mods:["Energetic","Euphoric","Carnival","Wild"] },
+        { primary:"Joyful",     mods:["Celebratory","Vibrant","Infectious","Buoyant"] },
+        { primary:"Romantic",   mods:["Warm","Passionate","Sensual","Sweet"] },
+        { primary:"Energetic",  mods:["Rhythmic","Driving","Hypnotic","Danceable"] }
+      ],
+      tempoRange:[90,200], defaultBPM:130,
+      instruments:["surdo","caixa","repinique","tamborim","pandeiro","cavaquinho","acoustic guitar","bass guitar","brass section","agogô","chocalho"],
+      production:["massive percussion wall","carnival energy","layered polyrhythm","bright tambourine texture","organic live feel","Rio carnival mix","rich brass stabs","infectious groove"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"latin_pop", name:"Latin Pop", icon:"🌟", group:"Latin",
+      subgenres:["Urban Latin Pop","Tropical Pop","Latin Ballad","Pop Latino","Latin Indie","Electro Latino"],
+      moods:[
+        { primary:"Romantic",   mods:["Sweet","Tender","Euphoric","Passionate"] },
+        { primary:"Uplifting",  mods:["Hopeful","Joyful","Feel-Good","Positive"] },
+        { primary:"Energetic",  mods:["Danceable","Fun","Vibrant","Catchy"] },
+        { primary:"Melancholic",mods:["Heartbroken","Bittersweet","Emotional","Nostalgic"] }
+      ],
+      tempoRange:[80,130], defaultBPM:100,
+      instruments:["synthesizer","acoustic guitar","bass guitar","drum machine","piano","strings","brass section","electric guitar","vocal harmonies","pad synth"],
+      production:["polished pop production","warm Latin flavor","radio-ready mix","punchy drum machine","layered harmonies","catchy hook focus","bright EQ","modern Latin sound"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null
+    },
+    // ── AFRO ─────────────────────────────────────────────────
+    {
+      id:"amapiano", name:"Amapiano", icon:"🎹", group:"Afro",
+      subgenres:["Deep Amapiano","Afro Amapiano","Amapiano Jazz","Amapiano House","Log Drum Amapiano","Vocal Amapiano"],
+      moods:[
+        { primary:"Euphoric",   mods:["Celebratory","Joyful","Ecstatic","Vibrant"] },
+        { primary:"Sensual",    mods:["Smooth","Flowing","Groovy","Hypnotic"] },
+        { primary:"Energetic",  mods:["Danceable","Infectious","Lively","Buoyant"] },
+        { primary:"Chill",      mods:["Laid-back","Deep","Atmospheric","Dreamy"] }
+      ],
+      tempoRange:[100,116], defaultBPM:108,
+      instruments:["log drum","bass piano","grand piano","synthesizer pad","bass guitar","drum machine","cabasa","snare","hi-hat","vocal chops","flute","saxophone"],
+      production:["signature log drum groove","warm piano chords","deep bass line","South African house feel","layered percussion","soulful vocal samples","spacious reverb","late-night club vibe"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"afrobeats2", name:"Afrobeats", icon:"🌍", group:"Afro",
+      subgenres:["Afropop","Afro-Fusion","Afro R&B","Afroswing","Alte","Afro-Soul","Naija Pop"],
+      moods:[
+        { primary:"Joyful",     mods:["Celebratory","Uplifting","Festive","Vibrant"] },
+        { primary:"Sensual",    mods:["Smooth","Flowing","Groovy","Warm"] },
+        { primary:"Energetic",  mods:["Danceable","Infectious","Lively","Buoyant"] },
+        { primary:"Melancholic",mods:["Yearning","Nostalgic","Emotional","Tender"] }
+      ],
+      tempoRange:[90,115], defaultBPM:100,
+      instruments:["talking drum","bass guitar","electric guitar","shaker","brass section","synthesizer","log drum","kora","melodica","vocal harmonies","drum machine"],
+      production:["warm mix","live percussion feel","rhythmic energy","layered percussion","bright EQ","organic warmth","afro groove","Lagos sound"],
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:null
+    },
+    {
+      id:"highlife", name:"Highlife", icon:"🎺", group:"Afro",
+      subgenres:["Guitar Highlife","Afro Highlife","Hiplife","Highlife Jazz","Burger Highlife","Afrobeat Highlife"],
+      moods:[
+        { primary:"Joyful",     mods:["Festive","Uplifting","Warm","Celebratory"] },
+        { primary:"Nostalgic",  mods:["Golden-Era","Classic","Sentimental","Traditional"] },
+        { primary:"Romantic",   mods:["Tender","Sweet","Warm","Flowing"] },
+        { primary:"Chill",      mods:["Laid-back","Groovy","Smooth","Mellow"] }
+      ],
+      tempoRange:[80,130], defaultBPM:105,
+      instruments:["electric guitar","brass section","bass guitar","drum kit","congas","saxophone","trumpet","trombone","piano","rhythm guitar","percussion","talking drum"],
+      production:["warm horn arrangement","West African groove","vintage live feel","layered brass texture","organic rhythm section","danceable low-end","golden-era warmth","Ghanaian sound"],
+      qualityDefault:["[Hyper-Realistic]","[Studio Quality]"], vocalDefault:"[Male Vocal]"
+    },
+    {
+      id:"afrofusion", name:"Afro Fusion", icon:"✨", group:"Afro",
+      subgenres:["Afro-Electronic","Afro-Jazz","Afro-Soul","Afro-R&B","Afro-Trap","Afro-House","Afro-Dancehall"],
+      moods:[
+        { primary:"Euphoric",   mods:["Vibrant","Celebratory","Ecstatic","Electric"] },
+        { primary:"Sensual",    mods:["Smooth","Groovy","Sultry","Hypnotic"] },
+        { primary:"Energetic",  mods:["Powerful","Dynamic","Infectious","Modern"] },
+        { primary:"Dreamy",     mods:["Ethereal","Atmospheric","Flowing","Deep"] }
+      ],
+      tempoRange:[85,125], defaultBPM:105,
+      instruments:["synthesizer","bass guitar","drum machine","electric guitar","kora","balafon","saxophone","vocal samples","log drum","pad synth","percussion"],
+      production:["modern African sound","layered electronic textures","organic meets digital","deep groove","atmospheric pads","cross-cultural production","polished mix","global fusion feel"],
+      qualityDefault:["[Studio Quality]","[Mastered]"], vocalDefault:null
     }
   ],
 
@@ -565,179 +709,3 @@ function excludeMatches(excludeKey, candidate) {
   return aliases.some(a => c.includes(a) || a.includes(c));
 }
 
-const VALIDATION_RULES = [
-
-  // ── MOOD CONFLICTS ────────────────────────────────────────
-  {
-    id:"mood_contradiction", category:"mood", severity:"warning",
-    en:{ msg:"Contradictory moods detected",
-         suggestion:"Pick one emotional direction for a cleaner, stronger result." },
-    fr:{ msg:"Ambiances contradictoires détectées",
-         suggestion:"Choisissez une direction émotionnelle claire pour un meilleur résultat." },
-    check(S) {
-      const PAIRS = [
-        [["Happy","Joyful","Uplifting","Euphoric","Playful"],
-         ["Melancholic","Sad","Dark","Gloomy","Sombre","Mournful"]],
-        [["Aggressive","Intense","Angry","Fierce"],
-         ["Peaceful","Calm","Serene","Gentle","Tranquil"]],
-        [["Energetic","Upbeat","Frantic"],
-         ["Lazy","Slow","Dreamy","Ethereal"]],
-        [["Romantic","Sensual"],
-         ["Angry","Aggressive","Hostile"]],
-      ];
-      const m = S.moods || [];
-      for (const [a,b] of PAIRS) {
-        const ha = m.find(x => a.includes(x));
-        const hb = m.find(x => b.includes(x));
-        if (ha && hb) { this._detail = `"${ha}" + "${hb}"`; return true; }
-      }
-      return false;
-    }
-  },
-
-  {
-    id:"mood_too_many", category:"mood", severity:"tip",
-    en:{ msg:"Many moods selected",
-         suggestion:"Suno focuses best on 2–3 moods. More can dilute the emotional impact." },
-    fr:{ msg:"Trop d'ambiances sélectionnées",
-         suggestion:"Suno est plus précis avec 2–3 ambiances. En ajouter plus dilue l'impact émotionnel." },
-    check(S) { return (S.moods||[]).length > 4; }
-  },
-
-  // ── GENRE / VOCAL REGISTER CONFLICTS ─────────────────────
-  {
-    id:"heavy_genre_soft_vocal", category:"vocals", severity:"warning",
-    en:{ msg:"Heavy genre with very soft vocal register",
-         suggestion:"Soprano or Alto may feel out of place in Metal. Consider Tenor or Baritone." },
-    fr:{ msg:"Genre heavy avec registre vocal très doux",
-         suggestion:"Soprano ou Alto peut sembler déplacé en Metal. Envisagez Ténor ou Baryton." },
-    check(S) {
-      const heavyGenres = ["Metal","Heavy Metal","Death Metal","Black Metal","Metalcore","Deathcore","Thrash Metal","Doom Metal"];
-      const softRegs = ["Soprano","Mezzo-Soprano","Alto"];
-      const reg = S.vocalistProfile?.register || "";
-      return heavyGenres.some(g => (S.genre||"").includes(g)) && softRegs.includes(reg);
-    }
-  },
-
-  {
-    id:"soprano_growl", category:"vocals", severity:"error",
-    en:{ msg:"Soprano register + Growl/Scream delivery",
-         suggestion:"Soprano and Growl/Scream are physiologically opposite. Choose one or the other." },
-    fr:{ msg:"Registre Soprano + livraison Growl/Scream",
-         suggestion:"Soprano et Growl/Scream sont opposés physiologiquement. Choisissez l'un ou l'autre." },
-    check(S) {
-      const reg = S.vocalistProfile?.register || "";
-      const del = S.vocalistProfile?.delivery || [];
-      const hard = ["[Growling]","[Screamed]"];
-      return reg === "Soprano" && del.some(d => hard.includes(d));
-    }
-  },
-
-  {
-    id:"bass_high_quality", category:"vocals", severity:"warning",
-    en:{ msg:"Bass register with high-pitched quality",
-         suggestion:'A Bass register paired with “High-pitched” sounds contradictory. Pick a consistent range.' },
-    fr:{ msg:"Registre Basse avec qualité aiguë",
-         suggestion:'Un registre Basse avec "High-pitched" est contradictoire. Choisissez une plage cohérente.' },
-    check(S) {
-      const reg = S.vocalistProfile?.register || "";
-      const q   = S.vocalistProfile?.qualities || [];
-      return reg === "Bass" && q.some(x => x.toLowerCase().includes("high"));
-    }
-  },
-
-  {
-    id:"classical_rap", category:"vocals", severity:"warning",
-    en:{ msg:"Classical/Opera genre with Rap delivery",
-         suggestion:"Rap flow in a classical context is unusual. This may produce unexpected results." },
-    fr:{ msg:"Genre Classique/Opéra avec livraison Rap",
-         suggestion:"Le Rap dans un contexte classique est inhabituel. Cela peut produire des résultats inattendus." },
-    check(S) {
-      const g = (S.genre||"").toLowerCase();
-      const del = S.vocalistProfile?.delivery || [];
-      const rapTags = ["[Rapped]","[Fast Rap]","[Slow Flow]","[Melodic Rap]","[Trap Flow]","[Double Time]"];
-      return (g.includes("classical") || g.includes("opera")) && del.some(d => rapTags.includes(d));
-    }
-  },
-
-  // ── PRODUCTION CONFLICTS ──────────────────────────────────
-  {
-    id:"lofi_hifi", category:"production", severity:"warning",
-    en:{ msg:"Lo-fi aesthetic + Hi-fi production tags",
-         suggestion:'Lo-fi and "Crystal Clear" / "High Fidelity" work against each other.' },
-    fr:{ msg:"Esthétique Lo-fi + tags de production Hi-fi",
-         suggestion:'"Lo-fi" et "Crystal Clear" / "High Fidelity" s\'opposent.' },
-    check(S) {
-      const p = (S.production||[]).map(x=>x.toLowerCase());
-      const hasLofi = p.some(x => x.includes("lo-fi") || x.includes("lofi"));
-      const hasHifi = p.some(x => x.includes("crystal clear") || x.includes("high fidelity") || x.includes("hi-fi"));
-      return hasLofi && hasHifi;
-    }
-  },
-
-  {
-    id:"acoustic_heavy_synth", category:"production", severity:"tip",
-    en:{ msg:"Acoustic instruments + Heavy electronic production",
-         suggestion:"Blending acoustic instruments with heavy synth/electronic production can muddy the sound." },
-    fr:{ msg:"Instruments acoustiques + production électronique lourde",
-         suggestion:"Mélanger des instruments acoustiques avec une production électronique lourde peut brouiller le son." },
-    check(S) {
-      const inst = (S.instruments||[]).map(x=>x.toLowerCase());
-      const prod = (S.production||[]).map(x=>x.toLowerCase());
-      const acoustic = inst.some(x => x.includes("acoustic") || x.includes("guitar") || x.includes("piano") || x.includes("violin"));
-      const heavy    = prod.some(x => x.includes("electronic") || x.includes("heavy synth") || x.includes("edm") || x.includes("dubstep"));
-      return acoustic && heavy;
-    }
-  },
-
-  // ── EXCLUDE OVERLAPS ──────────────────────────────────────
-  {
-    id:"exclude_overlap", category:"exclude", severity:"error",
-    en:{ msg:"Conflict: excluded item also in selected tags",
-         suggestion:"Remove it from Excludes or de-select it — having both cancels them out." },
-    fr:{ msg:"Conflit : un élément exclu est aussi sélectionné",
-         suggestion:"Retirez-le des Exclusions ou désélectionnez-le — avoir les deux s'annule." },
-    check(S) {
-      const excl = [...(S.excludes||[]), ...(S.customExcludes||[]).filter(Boolean)];
-      const all  = [
-        ...(S.instruments||[]), ...(S.customInstruments||[]).filter(Boolean),
-        ...(S.production||[]),  ...(S.customProduction||[]).filter(Boolean),
-        ...(S.qualityTags||[]), ...(S.vocalTags||[]),
-      ];
-      for (const e of excl) {
-        for (const a of all) {
-          if (excludeMatches(e, a)) {
-            this._detail = `"${e}" conflicts with "${a}"`;
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-  },
-
-  // ── STRUCTURE TIPS ────────────────────────────────────────
-  {
-    id:"no_genre", category:"structure", severity:"tip",
-    en:{ msg:"No genre selected",
-         suggestion:"A genre anchors the whole prompt. Go back to Step 1 and choose one." },
-    fr:{ msg:"Aucun genre sélectionné",
-         suggestion:"Le genre ancre tout le prompt. Revenez à l'Étape 1 pour en choisir un." },
-    check(S) { return !S.genre; }
-  },
-
-  {
-    id:"style_too_long", category:"structure", severity:"tip",
-    en:{ msg:"Style field may be too long",
-         suggestion:"Suno v5 works best under ~120 characters. Consider trimming to the most essential descriptors." },
-    fr:{ msg:"Champ Style peut être trop long",
-         suggestion:"Suno v5 fonctionne mieux sous ~120 caractères. Réduisez aux descripteurs essentiels." },
-    check(S) {
-      // rough estimate of style length
-      const parts = [S.genre, S.subgenre||S.customSubgenre,
-        ...(S.moods||[]), ...(S.instruments||[]), ...(S.production||[])].filter(Boolean);
-      return parts.join(", ").length > 120;
-    }
-  },
-
-];

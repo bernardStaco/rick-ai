@@ -28,7 +28,7 @@ let S = {
   genreGroup: "Caribbean",
   songKey: null, chordProgression: "", customChordProgression: "",
   step: 1, substep: 1, _validateUnlocked: false,
-  lang: "en"
+  lang: "fr"
 };
 
 let dragIdx = null;
@@ -1914,7 +1914,30 @@ async function _verifyPermission(handle) {
   return (await handle.requestPermission(opts)) === 'granted';
 }
 
-async function pickDBFile() {
+async function openExistingDB() {
+  if (!window.showOpenFilePicker) {
+    pbToast('File picker not supported in this browser', true);
+    return false;
+  }
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description: 'SQLite Database', accept: { 'application/x-sqlite3': ['.db'] } }]
+    });
+    const file = await handle.getFile();
+    const buf  = await file.arrayBuffer();
+    const SQL  = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` });
+    db = new SQL.Database(new Uint8Array(buf));
+    db.run(`CREATE TABLE IF NOT EXISTS songs (id TEXT PRIMARY KEY,title TEXT,state TEXT,created TEXT,updated TEXT)`);
+    _fileHandle = handle;
+    await _idbPut('fileHandle', handle);
+    patchCloudBtn();
+    pbToast('✓ Loaded: ' + handle.name + ' — ' + dbGetSongs().length + ' songs');
+    pbRefreshList();
+    return true;
+  } catch(e) { if(e.name!=='AbortError') pbToast('Failed to open DB: '+e.message,true); return false; }
+}
+
+async function createNewDB() {
   if (!window.showSaveFilePicker) {
     pbToast('File picker not supported in this browser', true);
     return false;
@@ -1927,11 +1950,15 @@ async function pickDBFile() {
     _fileHandle = handle;
     await _idbPut('fileHandle', handle);
     await _dbWriteFile();
-    pbToast('✓ DB file set — saves here from now on');
+    pbToast('✓ New DB created: ' + handle.name);
     patchCloudBtn();
+    pbRefreshList();
     return true;
-  } catch(e) { return false; } // user cancelled
+  } catch(e) { return false; }
 }
+
+// kept for backward compat
+async function pickDBFile() { return createNewDB(); }
 
 async function _dbWriteFile() {
   if (!db || !_fileHandle) return;
@@ -2053,11 +2080,18 @@ function showSongLibrary() {
   const existing = document.getElementById('songs-modal');
   if (existing) existing.remove();
   const dbBanner = _fileHandle
-    ? `<div class="songs-db-banner songs-db-connected"><span class="songs-db-icon">🗄</span><span class="songs-db-name">${_fileHandle.name}</span></div>`
+    ? `<div class="songs-db-banner songs-db-connected">
+        <span class="songs-db-icon">🗄</span>
+        <span class="songs-db-name">${_fileHandle.name}</span>
+        <button class="btn btn-sm songs-db-change-btn" onclick="openExistingDB()" title="Switch to a different DB file">📂 Change</button>
+      </div>`
     : `<div class="songs-db-banner songs-db-unpicked">
         <span class="songs-db-icon">💿</span>
-        <div class="songs-db-msg"><strong>No DB file selected</strong><span>Pick a file to save songs to disk</span></div>
-        <button class="btn songs-db-pick-btn" onclick="pickDBFile().then(()=>pbRefreshList())">📂 Choose file</button>
+        <div class="songs-db-msg"><strong>No DB file selected</strong><span>Open an existing .db or create a new one</span></div>
+        <div class="songs-db-btns">
+          <button class="btn songs-db-pick-btn" onclick="openExistingDB()">📂 Open DB</button>
+          <button class="btn songs-db-pick-btn songs-db-new-btn" onclick="createNewDB()">✨ New DB</button>
+        </div>
       </div>`;
   document.body.insertAdjacentHTML('afterbegin', `
     <div class="pb-modal" id="songs-modal">
@@ -2117,12 +2151,14 @@ function pbRefreshList() {
       <div class="song-row-actions">
         ${isActive
           ? `<button class="btn btn-sm btn-update${isDirtyActive?' btn-update-dirty':''}" onclick="pbSaveCurrent();pbRefreshList()">
-              ${isDirtyActive?'💾 Update':'✓ Saved'}
+              ${isDirtyActive?'&#128190; Update':'&#10003; Saved'}
              </button>`
-          : `<button class="btn btn-sm btn-open-song" onclick="pbOpenSong('${s.id}','${esc(s.title)}')">▶ Open</button>`
+          : `<button class="btn btn-sm btn-open-song" onclick="pbOpenSong('${s.id}','${esc(s.title)}')">&#9654; Open</button>`
         }
-        <button class="btn btn-sm" onclick="pbRenameSong('${s.id}','${esc(s.title)}')" title="Rename">✏</button>
-        <button class="btn btn-sm btn-danger-ghost" onclick="pbDeleteSong('${s.id}','${esc(s.title)}')" title="Delete">🗑</button>
+        <div class="song-row-meta-btns">
+          <button class="btn btn-icon-sm" onclick="pbRenameSong('${s.id}','${esc(s.title)}')" title="Rename">&#9998;</button>
+          <button class="btn btn-icon-sm btn-danger-ghost" onclick="pbDeleteSong('${s.id}','${esc(s.title)}')" title="Delete">&#128465;</button>
+        </div>
       </div>
     </div>`;
   }).join('');

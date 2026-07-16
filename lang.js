@@ -313,7 +313,18 @@ const KB_TEXT = {
       "afrobeats":       "West African-influenced pop with polyrhythmic percussion and infectious grooves",
       "kompa":           "Haitian dance music created in 1955 — infectious meringue-based rhythm, lush brass, and smooth electric guitar",
       "raboday":         "Modern Haitian urban genre — Kompa rhythms fused with trap, 808s, and raw street energy",
-      "zouk":            "Caribbean dance music from the French Antilles — romantic vocals, flowing rhythms, and lush tropical production"
+      "zouk":            "Caribbean dance music from the French Antilles — romantic vocals, flowing rhythms, and lush tropical production",
+      "rasin":           "Haitian roots music blending Vodou ceremonial rhythms with rock and electric instruments",
+      "salsa":           "High-energy Latin dance music with brass, percussion and irresistible danceable groove",
+      "cumbia":          "Colombian folk dance rhythm — accordion-driven groove with strong roots in African, indigenous and European traditions",
+      "vallenato":       "Colombian folk music with accordion, caja drum and guacharaca — storytelling melodies full of heart",
+      "bossanova":       "Brazilian fusion of samba and cool jazz — soft guitar, gentle rhythm and intimate vocals",
+      "samba":           "Brazilian carnival rhythm with massive layered percussion, irresistible energy and festive spirit",
+      "latin_pop":       "Polished contemporary Latin pop — catchy hooks, modern production and universal emotional appeal",
+      "amapiano":        "South African house genre defined by log drum grooves, warm piano chords and soulful bass lines",
+      "afrobeats2":      "Contemporary West African pop with polyrhythmic percussion, catchy melodies and infectious dance energy",
+      "highlife":        "Ghanaian classic blending jazz brass, guitar and African polyrhythm — the root of West African pop",
+      "afrofusion":      "Genre-crossing African music blending traditional instruments with electronic production and global influences"
     },
     tags: {
       "[Hyper-Realistic]": "Highest-fidelity render. Captures breath, bow noise, room tone. Uses more credits — skip on test runs.",
@@ -375,7 +386,18 @@ const KB_TEXT = {
       "afrobeats":       "Pop d'influence ouest-africaine avec percussions polyrythmiques et grooves entraînants",
       "kompa":           "Musique de danse haïtienne créée en 1955 — rythme meringue, cuivres luxuriants et guitare électrique douce",
       "raboday":         "Genre urbain haïtien moderne — rythmes Kompa fusionnés avec trap, 808s et énergie brute de la rue",
-      "zouk":            "Musique de danse caribéenne des Antilles françaises — voix romantiques, rythmes fluides et production tropicale"
+      "zouk":            "Musique de danse caribéenne des Antilles françaises — voix romantiques, rythmes fluides et production tropicale",
+      "rasin":           "Musique roots haïtienne mêlant rythmes cérémoniels Vodou à la guitare électrique et aux instruments modernes",
+      "salsa":           "Danse latine énergique avec cuivres, percussions et groove irrésistible",
+      "cumbia":          "Rythme populaire colombien à l'accordéon — roots africaines, indigènes et européennes fusionnées",
+      "vallenato":       "Musique folk colombienne à l'accordéon, caja et guacharaca — mélodies narratives pleines d'émotion",
+      "bossanova":       "Fusion brésilienne de samba et jazz cool — guitare douce, rythme léger et voix intimes",
+      "samba":           "Rythme de carnaval brésilien avec percussions massives, énergie irrésistible et esprit festif",
+      "latin_pop":       "Pop latine contemporaine soignée — refrains accrocheurs, production moderne et émotion universelle",
+      "amapiano":        "Genre house sud-africain défini par le log drum, les accords de piano chauds et les basses profondes",
+      "afrobeats2":      "Pop contemporaine ouest-africaine avec percussions polyrythmiques, mélodies accrocheuses et énergie de danse",
+      "highlife":        "Classique ghanéen mêlant cuivres jazz, guitare et polyrythmie africaine — racine de la pop ouest-africaine",
+      "afrofusion":      "Musique africaine croisant les genres — instruments traditionnels, production électronique et influences mondiales"
     },
     tags: {
       "[Hyper-Realistic]": "Rendu haute fidélité. Capture la respiration, le bruit d'archet, la résonance. Utilise plus de crédits — évitez pour les tests.",

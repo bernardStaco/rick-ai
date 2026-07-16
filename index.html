@@ -671,9 +671,18 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
 }
 .song-row-time { font-size: 11px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
 .song-row-actions {
-  display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; align-items: stretch;
+  display: flex; flex-direction: column; gap: 5px; flex-shrink: 0; align-items: stretch; min-width: 88px;
 }
+.song-row-meta-btns { display: flex; gap: 4px; justify-content: flex-end; }
 .btn-sm { padding: 6px 12px; font-size: 13px; font-weight: 600; }
+.btn-icon-sm {
+  padding: 4px 8px; font-size: 14px; font-weight: 400;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 7px; cursor: pointer; color: var(--text-muted);
+  font-family: inherit; transition: all .15s; line-height: 1;
+}
+.btn-icon-sm:hover { background: var(--surface2); color: var(--text); border-color: var(--text-muted); }
+.btn-icon-sm.btn-danger-ghost:hover { color: var(--conflict); border-color: var(--conflict); background: rgba(239,68,68,.08); }
 .btn-open-song {
   background: color-mix(in srgb, var(--l2) 15%, var(--surface2));
   border-color: color-mix(in srgb, var(--l2) 40%, transparent);
@@ -794,6 +803,25 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
   background: color-mix(in srgb, var(--l1) 25%, transparent);
   border-color: var(--l1);
 }
+.songs-db-btns { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
+.songs-db-new-btn {
+  background: color-mix(in srgb, var(--l2) 15%, transparent);
+  border-color: color-mix(in srgb, var(--l2) 50%, transparent);
+  color: var(--l2);
+}
+.songs-db-new-btn:hover {
+  background: color-mix(in srgb, var(--l2) 25%, transparent);
+  border-color: var(--l2);
+}
+.songs-db-connected { gap: 8px; flex-wrap: wrap; }
+.songs-db-name { font-family: monospace; font-size: 12px; color: var(--text-dim); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.songs-db-change-btn {
+  margin-left: auto; flex-shrink: 0; font-size: 11px; font-weight: 700;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); border-radius: 7px; padding: 3px 9px;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.songs-db-change-btn:hover { border-color: var(--l2); color: var(--l2); background: color-mix(in srgb, var(--l2) 10%, transparent); }
 
 /* ── WIZARD SUB-STEPS ── */
 .wiz-sstabs {
@@ -1260,6 +1288,26 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
   margin-top: 6px;
 }
 
+
+/* ── APP FOOTER ── */
+.app-footer {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 20px;
+  background: var(--surface); border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--text-muted);
+  flex-shrink: 0;
+}
+.app-footer-name { font-weight: 700; color: var(--l1); letter-spacing: .02em; }
+.app-footer-sep  { opacity: .4; }
+.app-footer-engine { color: var(--text-dim); }
+.app-footer-version {
+  font-family: monospace; font-size: 11px; font-weight: 600;
+  color: var(--l1);
+  background: color-mix(in srgb, var(--l1) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--l1) 30%, transparent);
+  border-radius: 6px; padding: 1px 7px; letter-spacing: .03em;
+}
+
 </style>
 </head>
 <body>
@@ -1321,6 +1369,7 @@ body { background: var(--bg); color: var(--text); font-family: system-ui, -apple
   <span class="app-footer-version" id="app-version-lbl"></span>
 </footer>
 
+<script src="rules.js"></script>
 <script src="kb.js"></script>
 <script src="lang.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
