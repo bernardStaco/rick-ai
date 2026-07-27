@@ -133,7 +133,7 @@ const LANG = {
       closeBtn: "Close",
     },
     section: {
-      genre:     { title: "What kind of music?", hint: "Pick the style that fits your vision — everything else builds from this choice" },
+      genre:     { title: "What kind of music?", hint: "Pick a style — everything else builds from here." },
       key:       { title: "Key & Chord Progression", hint: "Optional — but powerful. Set the musical key and chord pattern for a more intentional sound." },
       subgenre:  { title: "Sub-Genre", hint: "Narrow it down for a more specific sound (optional)" },
       mood:      { title: "Mood", hint: "Set the emotional energy — stack 2–3 moods for best results" },
@@ -260,7 +260,7 @@ const LANG = {
       closeBtn: "Fermer",
     },
     section: {
-      genre:     { title: "Quel style de musique ?", hint: "Choisissez le style qui correspond à votre vision — tout le reste se construit à partir de là" },
+      genre:     { title: "Quel style de musique ?", hint: "Choisissez un style — tout le reste se construit à partir de là." },
       key:       { title: "Tonalité & Accords", hint: "Optionnel — mais puissant. Définissez la tonalité et les accords pour un son plus précis." },
       subgenre:  { title: "Sous-Genre", hint: "Précisez pour un son plus spécifique (optionnel)" },
       mood:      { title: "Ambiance", hint: "Définissez l'énergie émotionnelle — 2–3 ambiances pour de meilleurs résultats" },

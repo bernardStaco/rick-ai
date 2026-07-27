@@ -359,7 +359,7 @@ function genrePickerHTML() {
           <div class="genre-welcome-hint">${t("genrePickLabel")}</div>
         </div>
       </div>
-      <div class="gft-tabs-row">${tabs}</div>
+      <div class="gft-tabs-wrap"><div class="gft-tabs-row">${tabs}</div></div>
       <div class="gpc-body">${gridHTML}</div>
     </div>
   `;
